@@ -1,7 +1,7 @@
 // Arbella Studio: guarda la app para que abra rápido y sin internet.
 // Cambia VERSION cada vez que subas cambios a index.html para que el iPhone tome la versión nueva.
-const VERSION = 'arbella-studio-v1';
-const SHELL = ['./', 'index.html', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
+const VERSION = 'arbella-studio-v3';
+const SHELL = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

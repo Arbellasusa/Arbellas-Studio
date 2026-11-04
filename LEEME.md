@@ -7,7 +7,7 @@ Tiene dos partes:
 | Parte | Dónde vive | Para qué sirve |
 |---|---|---|
 | La app (`index.html`, `manifest.json`, `sw.js`, `icons/`) | GitHub Pages | Pantallas, armado y exportación del video |
-| El servidor de IA (`servidor-ia/worker.js`) | Cloudflare Workers (gratis) | Guarda tu clave de Anthropic y habla con la IA |
+| El servidor de IA (`servidor-ia/worker.js`) | Cloudflare Workers (gratis) | Guarda tus claves de Anthropic (guiones) y Leonardo AI (fotos) |
 
 La app también funciona sin el servidor. En ese caso arma el guion con una plantilla básica y la IA no mira tus fotos.
 
@@ -22,7 +22,7 @@ La app también funciona sin el servidor. En ese caso arma el guion con una plan
 4. Toca **Commit changes**.
 5. Ve a **Settings → Pages**. En "Branch" elige `main` y la carpeta `/ (root)`, y toca **Save**.
 6. Espera 1 o 2 minutos. Tu app queda en:
-   `https://TU-USUARIO.github.io/arbella-studio/`
+   `https://arbellasusa.github.io/Arbellas-Studio/`
 
 ## Parte 2: Crear el servidor de IA en Cloudflare
 
@@ -37,13 +37,46 @@ Esto mantiene tu clave en secreto. Si pones la clave dentro de la app, cualquier
    |---|---|---|
    | `ANTHROPIC_API_KEY` | Secret | tu clave `sk-ant-...` |
    | `APP_TOKEN` | Secret | una contraseña que inventes, por ejemplo `Arbellas-2026-xyz` |
-   | `ALLOWED_ORIGIN` | Text | `https://TU-USUARIO.github.io` (sin `/arbella-studio` al final) |
+   | `ALLOWED_ORIGIN` | Text | `https://arbellasusa.github.io` (sin nada más al final) |
+   | `LEONARDO_API_KEY` | Secret | tu clave de API de Leonardo (ver Parte 2B) |
+   | `GEMINI_API_KEY` | Secret | tu clave de Google AI Studio (ver Parte 2C) |
 
 5. Copia la dirección del Worker. Se ve así: `https://arbella-ia.TU-SUBDOMINIO.workers.dev`
 
+## Parte 2B: Conectar Leonardo AI (arreglar fotos)
+
+1. Entra a **app.leonardo.ai** con tu cuenta.
+2. En el menú busca **API Access** (o ve a tu perfil → **API**). La API se paga aparte de la suscripción normal: compra créditos de API (el paquete más pequeño alcanza para cientos de fotos).
+3. Toca **Create New Key**, ponle de nombre `Arbellas Studio` y copia la clave.
+4. En Cloudflare, en tu Worker, agrégala como **Secret** con el nombre `LEONARDO_API_KEY`.
+5. Si ya tenías el Worker hecho, entra a **Edit code**, reemplaza todo por el `worker.js` nuevo y toca **Deploy**.
+
+En la app, sube tus fotos y **toca una foto**. Se abre "Arreglar foto" con estas opciones:
+
+| Opción | Qué hace | Tiempo |
+|---|---|---|
+| Quitar fondo | Deja solo el producto, con fondo transparente | ~5 s |
+| Fondo blanco de estudio | Producto sobre blanco con sombra suave, estilo catálogo | ~5 s |
+| Crear escena | Pone el producto en una escena nueva (estudio de lujo, recámara, exterior, flat lay, solo mejorar luz o tu propia instrucción) | 20–60 s |
+
+La foto arreglada reemplaza a la original en el video y lleva la marca **IA**. Con **Deshacer** vuelves a la original.
+
+Las escenas las crea la IA: revisa que el color, el encaje y los detalles de la prenda sigan iguales antes de publicar, para que el cliente reciba lo mismo que ve.
+
+## Parte 2C: Conectar el video IA de Google (motor de Google Flow)
+
+Google Flow no tiene API propia. Su motor de video sí está en la API de Gemini: desde el 22 de octubre de 2026 se llama **Gemini Omni Flash** (antes Veo 3.1).
+
+1. Entra a **aistudio.google.com** con tu cuenta de Google.
+2. Toca **Get API key → Create API key** y cópiala.
+3. Activa la facturación del proyecto en AI Studio (**Billing**). La generación de video normalmente no entra en la capa gratis.
+4. En Cloudflare agrégala como **Secret** con el nombre `GEMINI_API_KEY` y toca **Deploy**.
+
+En la app, toca una foto, baja a **Video con IA de Google**, elige el movimiento y toca **Animar esta foto**. Tarda de 1 a 3 minutos. El clip queda como apertura del anuncio, con tu gancho encima. En el paso 3 lo puedes guardar solo o quitarlo.
+
 ## Parte 3: Instalar en el iPhone
 
-1. Abre **Safari** (tiene que ser Safari) y entra a `https://TU-USUARIO.github.io/arbella-studio/`
+1. Abre **Safari** (tiene que ser Safari) y entra a `https://arbellasusa.github.io/Arbellas-Studio/`
 2. Toca **Compartir** (el cuadro con la flecha) y elige **Agregar a pantalla de inicio**, luego **Agregar**.
 3. Abre la app desde el ícono nuevo.
 4. Toca **Ajustes**, pega la dirección del Worker y tu `APP_TOKEN`, toca **Guardar** y después **Probar conexión**. Cuando el punto se pone verde, la IA está conectada.
@@ -67,5 +100,8 @@ Esto mantiene tu clave en secreto. Si pones la clave dentro de la app, cualquier
 | "La contraseña no coincide" | La contraseña en Ajustes debe ser idéntica a `APP_TOKEN`. |
 | "Origen no permitido" | `ALLOWED_ORIGIN` debe ser exactamente `https://TU-USUARIO.github.io`, sin barra al final. |
 | "No se pudo conectar" | Revisa que la dirección del Worker empiece con `https://` y esté bien copiada. |
-| Error de saldo o crédito | Agrega saldo en console.anthropic.com → Billing. |
+| Error de saldo o crédito | Guiones: agrega saldo en console.anthropic.com → Billing. Fotos: compra créditos de API en app.leonardo.ai. |
+| "Falta LEONARDO_API_KEY" | Agrega la clave de Leonardo como Secret en Cloudflare. |
+| "Falta GEMINI_API_KEY" | Agrega la clave de Google AI Studio como Secret en Cloudflare. |
+| "Google (403)" o de facturación | Activa Billing en tu proyecto de AI Studio. |
 | No sale "Agregar a pantalla de inicio" | Usa Safari. En el menú de Compartir, toca "Editar acciones" y actívalo. |
