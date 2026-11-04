@@ -119,6 +119,8 @@ video#result{width:100%;max-width:340px;border-radius:14px;display:block;margin:
 .clipbox video{width:64px;aspect-ratio:9/16;border-radius:8px;object-fit:cover;background:#000;flex:none}
 .clipbox .btns{gap:6px}
 .clipbox .btn{padding:8px 12px;font-size:13px}
+.jobbar{display:flex;flex-direction:column;gap:2px;background:#0F1B3D;color:#F4E7C6;border-radius:10px;padding:10px 12px}
+.jobbar strong{font-size:14px}.jobbar span{font-size:12px;opacity:.85}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -150,6 +152,7 @@ video#result{width:100%;max-width:340px;border-radius:14px;display:block;margin:
     <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
       <section class="panel" aria-labelledby="s1">
         <div class="step"><b>1</b><h2 id="s1">Tu producto</h2><span>hasta 6 fotos</span></div>
+        <div class="jobbar" id="jobBar" hidden><strong id="jobTitle"></strong><span id="jobInfo"></span></div>
         <div class="drop" id="drop">
           <div id="thumbs" style="display:contents"></div>
           <label class="add" for="file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Agregar<br>fotos</label>
@@ -258,8 +261,8 @@ video#result{width:100%;max-width:340px;border-radius:14px;display:block;margin:
 
     <aside class="stage">
       <section class="panel" aria-labelledby="s3">
-        <div class="step"><b>3</b><h2 id="s3">Video</h2><span id="dur">16 s · 9:16</span></div>
-        <div class="frame"><canvas id="cv" width="720" height="1280" aria-label="Vista previa del video"></canvas></div>
+        <div class="step"><b>3</b><h2 id="s3">Video</h2><span id="dur">16 s · 1080×1920</span></div>
+        <div class="frame"><canvas id="cv" width="1080" height="1920" aria-label="Vista previa del video"></canvas></div>
         <div class="tpl" id="tpl">
           <button type="button" data-t="lujo" aria-pressed="true">Lujo<div class="sw"><i style="background:#0F1B3D"></i><i style="background:#C9A24A"></i><i style="background:#F6EFE1"></i></div></button>
           <button type="button" data-t="oferta" aria-pressed="false">Oferta<div class="sw"><i style="background:#C8102E"></i><i style="background:#FFD23F"></i><i style="background:#111"></i></div></button>
@@ -413,7 +416,7 @@ function renderScript(){
   $('listTitle').textContent = S.listTitle;
   $('points').innerHTML = ''; S.points.forEach(p => { const li = document.createElement('li'); li.textContent = p; $('points').append(li); });
   $('voice').textContent = S.voice;
-  $('dur').textContent = Math.round(total()) + ' s · 9:16';
+  $('dur').textContent = Math.round(total()) + ' s · 1080×1920';
 }
 $('cta').oninput = e => S.cta = e.target.value;
 
@@ -488,6 +491,7 @@ function wipe(tpl, p){
   ctx.fillStyle = tpl.acc; ctx.fillRect(W*e, 0, W*(1-e), H);
 }
 function drawFrame(t){
+  ctx.setTransform(1.5, 0, 0, 1.5, 0, 0); // dibujo en 720×1280, salida 1080×1920
   const tpl = TPL[S.tpl], n = S.scenes.length, imgs = S.images;
   ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.globalAlpha = 1;
   const hd = hookDur();
@@ -628,7 +632,7 @@ $('exp').onclick = async () => {
   if ($('music').checked){
     try { ac = new (window.AudioContext||window.webkitAudioContext)(); await ac.resume(); const dest = ac.createMediaStreamDestination(); startBeat(ac, dest); dest.stream.getAudioTracks().forEach(tr => stream.addTrack(tr)); } catch { ac = null; }
   }
-  let rec; try { rec = new MediaRecorder(stream, mime ? {mimeType:mime, videoBitsPerSecond: 6_000_000} : {videoBitsPerSecond: 6_000_000}); }
+  let rec; try { rec = new MediaRecorder(stream, mime ? {mimeType:mime, videoBitsPerSecond: 10_000_000} : {videoBitsPerSecond: 10_000_000}); }
   catch { setStatus('expStatus','No se pudo iniciar la grabación en este navegador.','err'); return; }
   const chunks = []; rec.ondataavailable = e => e.data.size && chunks.push(e.data);
   $('exp').disabled = true; recording = true;
@@ -922,6 +926,52 @@ $('gBtn').onclick = async () => {
 
 /* ---------- Inicio ---------- */
 setExample(); renderScript(); requestAnimationFrame(loop);
+
+/* ---------- Trabajos del plan diario (enlace #job=...) ---------- */
+function decodeJob(h){
+  const m = String(h || '').match(/^#job=([A-Za-z0-9_\-]+)/); if (!m) return null;
+  try {
+    let b64 = m[1].replace(/-/g,'+').replace(/_/g,'/'); while (b64.length % 4) b64 += '=';
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  } catch { return null; }
+}
+function loadRemoteImage(url){
+  return new Promise((res, rej) => {
+    const im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = () => res(im); im.onerror = rej;
+    im.src = url + (url.includes('?') ? '&' : '?') + 'width=1080';
+  });
+}
+async function loadJob(){
+  const job = decodeJob(location.hash); if (!job) return;
+  const str = v => String(v == null ? '' : v);
+  $('jobBar').hidden = false;
+  $('jobTitle').textContent = (job.slot ? 'Video ' + job.slot + ' del plan · ' : 'Video del plan · ') + str(job.concept || '');
+  $('jobInfo').textContent = 'Cargando fotos de Shopify…';
+  $('name').value = str(job.name); $('price').value = job.price || ''; $('oldPrice').value = job.oldPrice || ''; $('notes').value = str(job.notes);
+  if (job.lang && $('lang').querySelector('option[value="' + job.lang + '"]')) $('lang').value = job.lang;
+  if (job.tone && $('tone').querySelector('option[value="' + job.tone + '"]')) $('tone').value = job.tone;
+  if (Array.isArray(job.hooks) && job.hooks.length) S.hooks = job.hooks.slice(0,3).map(str);
+  if (Array.isArray(job.scenes) && job.scenes.length) S.scenes = job.scenes.slice(0,6).map(x => ({t: str(x.t), d: str(x.d)}));
+  if (job.cta) S.cta = str(job.cta);
+  if (job.caption) S.caption = str(job.caption);
+  if (Array.isArray(job.tags)) S.tags = job.tags.slice(0,10).map(str);
+  if (job.listTitle) S.listTitle = str(job.listTitle);
+  if (Array.isArray(job.points)) S.points = job.points.map(str);
+  if (job.voice) S.voice = str(job.voice);
+  S.hookIdx = 0;
+  if (job.tpl && TPL[job.tpl]){ S.tpl = job.tpl; document.querySelectorAll('#tpl button').forEach(x => x.setAttribute('aria-pressed', x.dataset.t === job.tpl)); }
+  $('scriptTag').textContent = 'Plan del día';
+  renderScript();
+  const urls = (Array.isArray(job.images) ? job.images : []).filter(u => /^https:\/\/cdn\.shopify\.com\//.test(u)).slice(0,6);
+  const got = (await Promise.allSettled(urls.map(loadRemoteImage))).filter(r => r.status === 'fulfilled').map(r => r.value);
+  if (got.length){ S.images = got; S.example = false; S.edited = got.map(() => false); S.undo = got.map(() => null); closeLeo(); }
+  renderThumbs(); restart();
+  $('jobInfo').textContent = got.length ? (got.length + ' foto(s) de Shopify cargadas. Revisa, mejora si quieres y exporta.') : 'No se pudieron cargar las fotos. Sube las fotos a mano.';
+}
+loadJob();
+window.addEventListener('hashchange', loadJob);
 const fontsReady = Promise.all(['italic 700 40px "Bodoni Moda"','400 40px Anton','800 40px Manrope','600 40px Manrope'].map(f => document.fonts.load(f).catch(()=>{})));
 fontsReady.then(restart);
 $('saveBtn').onclick = saveVideo;
