@@ -1,15 +1,16 @@
 {
-  "name": "Arbella Studio",
-  "short_name": "Arbella Studio",
+  "name": "Arbellas Studio",
+  "short_name": "Arbellas",
   "description": "Fotos de tu producto, guion con IA y video vertical para TikTok Shop.",
   "lang": "es",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0F1B3D",
-  "theme_color": "#0F1B3D",
+  "background_color": "#171A3D",
+  "theme_color": "#171A3D",
   "icons": [
+    { "src": "favicon-32.png", "sizes": "32x32", "type": "image/png" },
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
     { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
