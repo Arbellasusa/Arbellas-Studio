@@ -15,6 +15,7 @@
 <title>Arbellas Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,500;1,6..96,700&family=Manrope:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Archivo+Black&family=Bebas+Neue&family=Caveat:wght@700&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=DM+Serif+Display&family=Montserrat:wght@600;700;900&family=Oswald:wght@700&family=Pacifico&family=Playfair+Display:ital,wght@1,800&family=Space+Grotesk:wght@500;700&family=Syne:wght@800&display=swap">
 <style>
 /* Layout: estudio de una columna en móvil; en escritorio, panel de producto a la izquierda y vista previa 9:16 a la derecha. */
 :root{
@@ -87,7 +88,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .scene input{padding:8px 10px}
 .stage .frame{background:#05070D;border-radius:22px;padding:8px;max-width:340px;width:100%;margin:0 auto;box-shadow:0 18px 40px -20px rgba(10,15,30,.6)}
 canvas#cv{width:100%;aspect-ratio:9/16;display:block;border-radius:15px;background:#0F1B3D;max-width:100%}
-.tpl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tpl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-height:300px;overflow-y:auto;padding:2px;overscroll-behavior:contain}
+.tpl button{position:relative;padding-top:18px}
+.tpl button span{line-height:1.2;text-align:left}
+.tpl .new{position:absolute;top:-1px;right:-1px;font-style:normal;font-size:9px;font-weight:800;background:var(--gold);color:#fff;border-radius:0 9px 0 8px;padding:2px 6px;letter-spacing:.05em}
+.tplgroups{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;width:100%;max-width:100%;min-width:0}
+.stage,.stage .panel{min-width:0}
+.tplgroups button{flex:none;font:inherit;font-size:12px;font-weight:700;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.tplgroups button[aria-pressed=true]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.tplsearch{width:100%;font:inherit;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.musicrow{display:flex;gap:8px;align-items:center}
+.musicrow select{flex:1;min-width:0;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
 .tpl button{border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .tpl button[aria-pressed=true]{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset}
 .sw{display:flex;gap:4px}.sw i{width:16px;height:16px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.15)}
@@ -263,10 +274,11 @@ video#result{width:100%;max-width:340px;border-radius:14px;display:block;margin:
       <section class="panel" aria-labelledby="s3">
         <div class="step"><b>3</b><h2 id="s3">Video</h2><span id="dur">16 s · 1080×1920</span></div>
         <div class="frame"><canvas id="cv" width="1080" height="1920" aria-label="Vista previa del video"></canvas></div>
-        <div class="tpl" id="tpl">
-          <button type="button" data-t="lujo" aria-pressed="true">Lujo<div class="sw"><i style="background:#0F1B3D"></i><i style="background:#C9A24A"></i><i style="background:#F6EFE1"></i></div></button>
-          <button type="button" data-t="oferta" aria-pressed="false">Oferta<div class="sw"><i style="background:#C8102E"></i><i style="background:#FFD23F"></i><i style="background:#111"></i></div></button>
-          <button type="button" data-t="limpio" aria-pressed="false">Limpio<div class="sw"><i style="background:#fff"></i><i style="background:#111"></i><i style="background:#B88A2E"></i></div></button>
+        <div class="tplgroups" id="tplGroups"></div>
+        <input class="tplsearch" id="tplSearch" type="search" placeholder="Buscar plantilla (navidad, oferta, POV…)" aria-label="Buscar plantilla">
+        <div class="tpl" id="tpl" aria-label="Plantillas"></div>
+        <p class="hint" style="margin:0"><span id="tplCount"></span> · <span id="tplInfo"></span></p>
+        <div class="musicrow"><label for="musicSel" style="font-size:14px;font-weight:700">Música</label><select id="musicSel"></select><button class="btn ghost" id="musicTry" type="button">Escuchar</button></div></button>
         </div>
         <div class="clipbox" id="clipBox" hidden>
           <video id="clipPrev" muted playsinline loop autoplay></video>
@@ -279,7 +291,7 @@ video#result{width:100%;max-width:340px;border-radius:14px;display:block;margin:
             </div>
           </div>
         </div>
-        <label class="check"><input type="checkbox" id="music" checked> Ritmo de fondo (generado, sin derechos de autor)</label>
+        <label class="check"><input type="checkbox" id="music" checked> Música de fondo (generada en la app, sin derechos de autor)</label>
         <label class="check"><input type="checkbox" id="showPrice" checked> Mostrar precio</label>
         <div class="btns">
           <button class="btn gold" id="exp" type="button">Exportar video</button>
@@ -294,9 +306,179 @@ video#result{width:100%;max-width:340px;border-radius:14px;display:block;margin:
 </div>
 
 <script>
+/* Arbellas Studio: catálogo de plantillas y música.
+   Cada plantilla combina un diseño (layout), colores, tipografías, transición, movimiento de cámara,
+   efecto y una música por defecto. Las plantillas de tendencia nuevas se agregan en tendencias.json
+   (mismo formato) sin tocar este archivo.
+
+   layout:  clasico | portada | subtitulo | split | marco | cine | neon | lista | beat | sticker
+   trans:   wipe | flash | slide | zoom | blinds | glitch | fade | none
+   motion:  kenburns | punch | pan | still
+   fx:      '' | snow | sparkle | hearts | confetti | grain | bokeh
+   price:   pill | sticker | tag | big
+   Toda la música se genera en el navegador (composiciones originales o melodías de dominio público). */
+(function(){
+const FONT = {
+  bodoni:  'italic 700 {s}px "Bodoni Moda", Georgia, serif',
+  playfair:'italic 800 {s}px "Playfair Display", Georgia, serif',
+  dmserif: '400 {s}px "DM Serif Display", Georgia, serif',
+  abril:   '400 {s}px "Abril Fatface", Georgia, serif',
+  cormo:   'italic 600 {s}px "Cormorant Garamond", Georgia, serif',
+  anton:   '400 {s}px Anton, Impact, sans-serif',
+  bebas:   '400 {s}px "Bebas Neue", Impact, sans-serif',
+  archivo: '400 {s}px "Archivo Black", Impact, sans-serif',
+  oswald:  '700 {s}px Oswald, Impact, sans-serif',
+  monts:   '900 {s}px Montserrat, sans-serif',
+  syne:    '800 {s}px Syne, sans-serif',
+  grotesk: '700 {s}px "Space Grotesk", sans-serif',
+  manrope: '800 {s}px Manrope, sans-serif',
+  pacifico:'400 {s}px Pacifico, cursive',
+  caveat:  '700 {s}px Caveat, cursive'
+};
+const BODY = {
+  manrope: '600 {s}px Manrope, sans-serif',
+  monts:   '600 {s}px Montserrat, sans-serif',
+  grotesk: '500 {s}px "Space Grotesk", sans-serif',
+  cormo:   '600 {s}px "Cormorant Garamond", Georgia, serif'
+};
+// [id, nombre, grupo, layout, trans, motion, fx, price, música, bg, acc, fg, light, display, body, mayúsculas, segundos por escena]
+const R = [
+ // —— Clásicas (compatibles con el plan diario) ——
+ ['lujo','Lujo','Lujo','clasico','wipe','kenburns','','pill','pop','#0F1B3D','#C9A24A','#F6EFE1',0,'bodoni','manrope',0,2.6],
+ ['oferta','Oferta','Oferta','clasico','wipe','kenburns','','pill','pop','#C8102E','#FFD23F','#FFFFFF',0,'anton','manrope',1,2.6],
+ ['limpio','Limpio','Minimal','clasico','wipe','kenburns','','pill','pop','#FFFFFF','#B88A2E','#111111',1,'manrope','manrope',0,2.6],
+ // —— Lujo ——
+ ['vogue','Portada Vogue','Lujo','portada','fade','kenburns','grain','tag','cine','#111111','#E9D7B0','#FFFFFF',0,'abril','manrope',1,2.8],
+ ['champan','Champán','Lujo','marco','fade','kenburns','sparkle','tag','bossa','#F4EBDD','#B08D57','#2B2118',1,'playfair','cormo',0,2.8],
+ ['noir','Noir Dorado','Lujo','cine','fade','pan','grain','tag','cine','#0A0A0A','#D4AF37','#F5F0E6',0,'cormo','cormo',0,3.0],
+ ['perla','Perla','Lujo','subtitulo','fade','kenburns','bokeh','pill','rnb','#EDE6E1','#8C6A5D','#2A1F1B',1,'dmserif','manrope',0,2.8],
+ ['esmeralda','Esmeralda','Lujo','portada','wipe','kenburns','sparkle','tag','bossa','#0D3B2E','#D8B76A','#F7F2E7',0,'playfair','manrope',0,2.7],
+ ['boudoir','Boudoir Vino','Lujo','cine','fade','kenburns','bokeh','tag','rnb','#3A0D17','#E7B7A3','#FBEDEA',0,'bodoni','cormo',0,3.0],
+ ['marmol','Mármol','Lujo','marco','slide','still','','tag','lofi','#F2F0EC','#1E1E1E','#1E1E1E',1,'dmserif','manrope',1,2.6],
+ // —— Oferta / Black Friday ——
+ ['blackfriday','Black Friday','Oferta','beat','flash','punch','','big','trap','#000000','#FF2D2D','#FFFFFF',0,'anton','monts',1,2.2],
+ ['cybermonday','Cyber Monday','Oferta','neon','glitch','punch','grain','big','synth','#060B2E','#18F0FF','#FFFFFF',0,'syne','grotesk',1,2.2],
+ ['flash','Flash Sale','Oferta','sticker','zoom','punch','','sticker','edm','#FFE600','#FF2D55','#111111',1,'archivo','monts',1,2.2],
+ ['remate','Remate Rojo','Oferta','split','slide','punch','','big','dembow','#D7141A','#FFFFFF','#FFFFFF',0,'bebas','monts',1,2.3],
+ ['cupon','Cupón','Oferta','lista','wipe','kenburns','confetti','sticker','pop','#FFF4E5','#FF6A00','#1A1A1A',1,'archivo','monts',1,2.5],
+ ['precioloco','Adivina el precio','Oferta','sticker','flash','punch','confetti','big','jersey','#7A00FF','#FFE14D','#FFFFFF',0,'monts','monts',1,2.2],
+ ['outlet','Outlet','Oferta','subtitulo','blinds','pan','','tag','house','#111827','#22C55E','#FFFFFF',0,'oswald','grotesk',1,2.4],
+ ['ultimas','Últimas piezas','Oferta','beat','flash','punch','','big','phonk','#1B1B1B','#FF7A00','#FFFFFF',0,'bebas','monts',1,2.1],
+ // —— Navidad / Regalo ——
+ ['navidad','Navidad Clásica','Navidad','portada','wipe','kenburns','snow','pill','jingle','#9E0F24','#FFD54A','#FFF4E6',0,'anton','manrope',1,2.5],
+ ['nochebuena','Nochebuena','Navidad','cine','fade','kenburns','snow','tag','deck','#0E2147','#F2C14E','#FFF3D6',0,'playfair','cormo',0,2.8],
+ ['regalo','Lista de regalos','Navidad','lista','slide','kenburns','sparkle','sticker','jingle','#123D2C','#E23A3A','#FFFFFF',0,'monts','monts',0,2.5],
+ ['pinoplata','Pino y Plata','Navidad','marco','fade','kenburns','snow','tag','deck','#F3F5F2','#1F5136','#1F2A24',1,'dmserif','manrope',0,2.7],
+ ['santa','Santa Party','Navidad','sticker','zoom','punch','confetti','big','jinglepop','#C8102E','#FFFFFF','#FFFFFF',0,'archivo','monts',1,2.3],
+ ['galleta','Galleta de jengibre','Navidad','subtitulo','fade','pan','snow','pill','lofixmas','#7B4A2A','#F7D9A8','#FFF6EA',0,'caveat','manrope',0,2.7],
+ ['aniversario','Año Nuevo','Navidad','neon','flash','punch','sparkle','big','edm','#0B0B14','#F5D06F','#FFFFFF',0,'syne','grotesk',1,2.3],
+ ['paraella','Regalo para ella','Navidad','split','slide','kenburns','hearts','pill','jinglepop','#F9C9D8','#B0234F','#B0234F',1,'pacifico','manrope',0,2.6],
+ // —— Tendencias TikTok (formatos) ——
+ ['getready','Get Ready With Me','Tendencia','subtitulo','flash','punch','','pill','house','#000000','#FFFFFF','#111111',0,'monts','monts',0,2.2],
+ ['outfitcheck','Outfit Check','Tendencia','beat','flash','punch','','sticker','jersey','#111111','#C6FF00','#FFFFFF',0,'archivo','monts',1,2.0],
+ ['unboxing','Unboxing ASMR','Tendencia','cine','fade','kenburns','','tag','minimal','#1C1A17','#E8D5B5','#FFFFFF',0,'grotesk','grotesk',0,2.8],
+ ['pov','POV','Tendencia','subtitulo','zoom','pan','','pill','lofi','#000000','#FFFFFF','#111111',0,'manrope','manrope',0,2.5],
+ ['tiktokmademe','TikTok me lo hizo comprar','Tendencia','sticker','glitch','punch','','sticker','phonk','#0F0F0F','#25F4EE','#FFFFFF',0,'monts','monts',0,2.2],
+ ['antesdespues','Antes y después','Tendencia','split','blinds','still','','pill','trap','#FFFFFF','#111111','#111111',1,'bebas','monts',1,2.4],
+ ['top3','Top 3 razones','Tendencia','lista','slide','kenburns','','sticker','afro','#FFF1E6','#FF4F64','#1A1A1A',1,'archivo','monts',1,2.4],
+ ['coquette','Coquette','Tendencia','marco','fade','kenburns','hearts','pill','rnb','#FCE4EC','#E91E63','#4A1030',1,'pacifico','manrope',0,2.7],
+ ['cleangirl','Clean Girl','Tendencia','subtitulo','fade','kenburns','','pill','lofi','#F5F1EA','#A68A64','#2B2622',1,'grotesk','grotesk',0,2.6],
+ ['y2k','Y2K','Tendencia','neon','glitch','punch','sparkle','sticker','jersey','#FF6EC7','#7DF9FF','#FFFFFF',0,'syne','grotesk',1,2.1],
+ ['oldmoney','Old Money','Tendencia','cine','fade','pan','grain','tag','bossa','#2E2A24','#CBB994','#F3EEE3',0,'cormo','cormo',0,3.0],
+ ['transicion','Transición mágica','Tendencia','beat','zoom','punch','sparkle','big','edm','#000000','#FFFFFF','#FFFFFF',0,'anton','monts',1,2.0],
+ ['haul','Haul','Tendencia','lista','flash','punch','','sticker','house','#F2F2F2','#111111','#111111',1,'archivo','monts',1,2.2],
+ ['storytime','Storytime','Tendencia','subtitulo','fade','kenburns','','pill','lofi','#101010','#FFFFFF','#111111',0,'manrope','manrope',0,2.7],
+ // —— Minimal / Catálogo ——
+ ['catalogo','Catálogo','Minimal','split','slide','still','','tag','minimal','#FFFFFF','#111111','#111111',1,'grotesk','grotesk',0,2.5],
+ ['nordico','Nórdico','Minimal','marco','fade','kenburns','','tag','lofi','#ECEAE4','#556B5D','#2F3A33',1,'dmserif','manrope',0,2.7],
+ ['monocromo','Monocromo','Minimal','portada','fade','kenburns','grain','tag','minimal','#1A1A1A','#FFFFFF','#FFFFFF',0,'bebas','manrope',1,2.6],
+ ['arena','Arena','Minimal','subtitulo','fade','pan','','pill','bossa','#E9DCC9','#7A5C3E','#3B2C1E',1,'cormo','cormo',0,2.8],
+ ['galeria','Galería','Minimal','marco','slide','still','','tag','cine','#FAFAFA','#C9A24A','#141414',1,'playfair','manrope',0,2.7],
+ ['editorial','Editorial','Minimal','portada','blinds','kenburns','','tag','house','#F7F7F5','#E4572E','#121212',1,'archivo','grotesk',1,2.5],
+ // —— Romántico / Lencería ——
+ ['rosado','Rosa Satín','Romántico','portada','fade','kenburns','hearts','pill','rnb','#F7D7E0','#E8457A','#7A1F3D',1,'playfair','manrope',0,2.7],
+ ['valentin','San Valentín','Romántico','sticker','zoom','punch','hearts','sticker','pop','#E0115F','#FFFFFF','#FFFFFF',0,'pacifico','monts',0,2.4],
+ ['encaje','Encaje Negro','Romántico','cine','fade','kenburns','bokeh','tag','rnb','#0E0B10','#E6B8C8','#FFFFFF',0,'bodoni','cormo',0,2.9],
+ ['lavanda','Lavanda','Romántico','marco','fade','kenburns','sparkle','pill','lofi','#E9E1F7','#7E57C2','#2E1F4A',1,'dmserif','manrope',0,2.7],
+ ['nocheroja','Noche Roja','Romántico','neon','fade','pan','bokeh','tag','rnb','#1A0006','#FF3B5C','#FFFFFF',0,'playfair','manrope',0,2.8],
+ ['durazno','Durazno','Romántico','subtitulo','slide','kenburns','','pill','afro','#FFE3D3','#FF7F50','#4A2416',1,'syne','manrope',0,2.5],
+ ['satinoro','Satín y Oro','Romántico','split','fade','kenburns','sparkle','tag','bossa','#1E1612','#E3C27A','#FFF7EA',0,'cormo','manrope',0,2.8]
+];
+const T = {};
+R.forEach(r => {
+  const [id,name,group,layout,trans,motion,fx,price,music,bg,acc,fg,light,disp,body,up,scene] = r;
+  T[id] = {id,name,group,layout,trans,motion,fx,price,music,bg,acc,fg,light:!!light,disp:FONT[disp]||FONT.manrope,body:BODY[body]||BODY.manrope,up:!!up,scene,
+    shade: light ? 'rgba(255,255,255,' : (function(h){const n=parseInt(h.slice(1),16);return 'rgba('+Math.round(((n>>16)&255)*.4)+','+Math.round(((n>>8)&255)*.4)+','+Math.round((n&255)*.4)+',';})(bg)};
+});
+
+/* ---------- Música ----------
+   16 pasos por compás. k=bombo, s=caja/aplauso, h=platillo cerrado, o=abierto, c=cencerro (phonk), b=bajo (índice de nota del acorde).
+   chords: notas MIDI por compás. lead: [midi, pasos] (melodías originales o de dominio público). */
+const M = {
+ pop:     {name:'Pop brillante',bpm:100,k:'x...x...x...x...',s:'....x.......x...',h:'..x...x...x...x.',bass:'x...x...x...x...',bassType:'sine',chords:[[57,60,64],[55,59,62],[53,57,60],[55,59,64]],pad:.05,pluck:true},
+ house:   {name:'House',bpm:124,k:'x...x...x...x...',s:'....x.......x...',h:'..x...x...x...x.',o:'..x...x...x...x.',bass:'..x...x...x...x.',bassType:'saw',chords:[[57,60,64],[53,57,60],[60,64,67],[55,59,62]],pad:.06,pump:true},
+ trap:    {name:'Trap',bpm:140,half:true,k:'x......x..x.....',s:'........x.......',h:'x.x.x.x.xxx.x.x.',bass:'x......x..x.....',bassType:'808',chords:[[57,60,64],[53,57,60],[55,59,62],[52,55,59]],pad:.04,bell:true},
+ phonk:   {name:'Phonk',bpm:130,k:'x..x..x...x..x..',s:'....x.......x...',h:'x.x.x.x.x.x.x.x.',c:'x..x..x...x.x...',bass:'x..x..x...x..x..',bassType:'808',chords:[[52,55,59],[50,53,57],[48,52,55],[47,50,55]],pad:.03},
+ jersey:  {name:'Jersey Club',bpm:140,k:'x..x..x...x.x.x.',s:'....x..x....x...',h:'..x...x...x...x.',bass:'x.....x...x.....',bassType:'saw',chords:[[57,60,64],[55,59,62],[53,57,60],[52,55,59]],pad:.04,pluck:true},
+ dembow:  {name:'Reguetón / Dembow',bpm:95,k:'x...x...x...x...',s:'...x..x....x..x.',h:'x.x.x.x.x.x.x.x.',bass:'x..x..x.x..x..x.',bassType:'sine',chords:[[57,60,64],[53,57,60],[60,64,67],[55,59,62]],pad:.04,pluck:true},
+ afro:    {name:'Afrobeats',bpm:105,k:'x..x....x.x.....',s:'....x.......x...',h:'x.xxx.x.x.xxx.x.',c:'..x..x....x..x..',bass:'x..x....x.x.....',bassType:'sine',chords:[[60,64,67],[57,60,64],[53,57,60],[55,59,62]],pad:.04,pluck:true},
+ lofi:    {name:'Lo-fi',bpm:80,swing:.12,k:'x.....x...x.....',s:'....x.......x...',h:'x.x.x.x.x.x.x.x.',bass:'x.....x...x.....',bassType:'sine',chords:[[62,65,69,72],[55,59,62,65],[60,64,67,71],[57,60,64,67]],pad:.05,crackle:true,lp:1400},
+ synth:   {name:'Synthwave',bpm:110,k:'x...x...x...x...',s:'....x.......x...',h:'x.x.x.x.x.x.x.x.',bass:'xxxxxxxxxxxxxxxx',bassType:'saw',chords:[[57,60,64],[53,57,60],[60,64,67],[55,59,62]],pad:.06},
+ edm:     {name:'EDM festival',bpm:128,k:'x...x...x...x...',s:'....x.......x...',h:'..x...x...x...x.',o:'..x...x...x...x.',bass:'..x...x...x...x.',bassType:'saw',chords:[[57,60,64],[53,57,60],[60,64,67],[55,59,62]],pad:.08,pump:true,pluck:true},
+ disco:   {name:'Disco funk',bpm:116,k:'x...x...x...x...',s:'....x.......x...',o:'..x...x...x...x.',h:'x.x.x.x.x.x.x.x.',bass:'x.x...x.x.x...x.',bassType:'saw',chords:[[62,65,69],[60,64,67],[58,62,65],[57,60,64]],pad:.05,pluck:true},
+ rnb:     {name:'R&B suave',bpm:88,swing:.08,k:'x......x..x.....',s:'....x.......x...',h:'x.x.x.x.x.x.x.x.',bass:'x......x..x.....',bassType:'sine',chords:[[62,65,69,72],[60,64,67,71],[58,62,65,69],[57,60,64,67]],pad:.06,bell:true,lp:1800},
+ bossa:   {name:'Lounge bossa',bpm:120,k:'x..x....x..x....',s:'..x..x....x..x..',h:'x.x.x.x.x.x.x.x.',bass:'x..x....x..x....',bassType:'sine',chords:[[62,65,69,72],[55,59,62,65],[60,64,67,71],[57,60,64,67]],pad:.05,bell:true,lp:2200},
+ cine:    {name:'Cinemático',bpm:90,k:'x.......x.......',s:'........x.......',h:'',bass:'x...............',bassType:'sine',chords:[[57,60,64],[53,57,60],[48,55,60],[55,59,62]],pad:.09,bell:true},
+ minimal: {name:'Minimal ASMR',bpm:120,k:'x.......x.......',s:'',h:'..x...x...x...x.',bass:'',chords:[[60,64,67],[57,60,64],[53,57,60],[55,59,62]],pad:.03,pluck:true,lp:1600},
+ jingle:  {name:'Jingle Bells (dominio público)',bpm:120,k:'x...x...x...x...',s:'....x.......x...',h:'x.x.x.x.x.x.x.x.',bell:true,bass:'x...x...x...x...',bassType:'sine',chords:[[48,52,55],[48,52,55],[53,57,60],[55,59,62]],pad:.04,
+   lead:[[64,2],[64,2],[64,4],[64,2],[64,2],[64,4],[64,2],[67,2],[60,3],[62,1],[64,8],[65,2],[65,2],[65,3],[65,1],[65,2],[64,2],[64,2],[64,1],[64,1],[64,2],[62,2],[62,2],[64,2],[62,4],[67,4]]},
+ jinglepop:{name:'Jingle pop (dominio público)',bpm:132,k:'x...x...x...x...',s:'....x.......x...',h:'..x...x...x...x.',o:'..x...x...x...x.',bell:true,bass:'..x...x...x...x.',bassType:'saw',chords:[[48,52,55],[48,52,55],[53,57,60],[55,59,62]],pad:.05,pump:true,
+   lead:[[64,2],[64,2],[64,4],[64,2],[64,2],[64,4],[64,2],[67,2],[60,3],[62,1],[64,8],[65,2],[65,2],[65,3],[65,1],[65,2],[64,2],[64,2],[64,1],[64,1],[64,2],[62,2],[62,2],[64,2],[62,4],[67,4]]},
+ deck:    {name:'Deck the Halls (dominio público)',bpm:110,k:'x.......x.......',s:'....x.......x...',h:'x.x.x.x.x.x.x.x.',bell:true,bass:'x...x...x...x...',bassType:'sine',chords:[[48,52,55],[48,52,55],[53,57,60],[55,59,62]],pad:.05,
+   lead:[[67,3],[65,1],[64,2],[62,2],[60,2],[62,2],[64,2],[60,2],[62,1],[64,1],[65,1],[62,1],[64,3],[62,1],[60,2],[59,2],[60,4]]},
+ lofixmas:{name:'Navidad lo-fi',bpm:84,swing:.1,k:'x.....x...x.....',s:'....x.......x...',h:'x.x.x.x.x.x.x.x.',bell:true,bass:'x.....x...x.....',bassType:'sine',chords:[[60,64,67,71],[57,60,64,67],[53,57,60,64],[55,59,62,65]],pad:.05,crackle:true,lp:1500,
+   lead:[[67,3],[65,1],[64,2],[62,2],[60,2],[62,2],[64,2],[60,2],[62,1],[64,1],[65,1],[62,1],[64,3],[62,1],[60,2],[59,2],[60,4]]},
+ dnb:     {name:'Drum & Bass',bpm:172,k:'x.........x.....',s:'....x.......x...',h:'x.x.x.x.x.x.x.x.',bass:'x.........x.....',bassType:'saw',chords:[[57,60,64],[53,57,60],[55,59,62],[52,55,59]],pad:.06}
+};
+/* Convierte una entrada de tendencias.json en plantilla. Valida todo para que un dato malo no rompa la app. */
+const LAYOUTS = ['clasico','portada','subtitulo','split','marco','cine','neon','lista','beat','sticker'];
+const TRANS = ['wipe','flash','slide','zoom','blinds','glitch','fade','none'];
+const MOTION = ['kenburns','punch','pan','still'];
+const FXS = ['','snow','sparkle','hearts','confetti','grain','bokeh'];
+const PRICES = ['pill','sticker','tag','big'];
+const hex = v => /^#[0-9a-fA-F]{6}$/.test(String(v||'')) ? v : null;
+const pick = (v, list, d) => list.includes(v) ? v : d;
+function build(e){
+  if (!e || !/^[a-z0-9_-]{2,40}$/.test(String(e.id||''))) return null;
+  const bg = hex(e.bg) || '#111111', acc = hex(e.acc) || '#FFFFFF', fg = hex(e.fg) || '#FFFFFF', light = !!e.light;
+  return {id:e.id, name:String(e.name||e.id).slice(0,40), group:'Tendencia', trend:true, fecha:String(e.fecha||''), inspiracion:String(e.inspiracion||'').slice(0,300),
+    layout:pick(e.layout,LAYOUTS,'subtitulo'), trans:pick(e.trans,TRANS,'flash'), motion:pick(e.motion,MOTION,'punch'), fx:pick(e.fx||'',FXS,''),
+    price:pick(e.price,PRICES,'pill'), music:String(e.music||'pop'), bg, acc, fg, light,
+    disp:FONT[e.disp]||FONT.monts, body:BODY[e.body]||BODY.manrope, up:!!e.up, scene:Math.min(3.2, Math.max(1.8, +e.scene || 2.4)),
+    shade: light ? 'rgba(255,255,255,' : (function(h){const n=parseInt(h.slice(1),16);return 'rgba('+Math.round(((n>>16)&255)*.4)+','+Math.round(((n>>8)&255)*.4)+','+Math.round((n&255)*.4)+',';})(bg)};
+}
+function buildMusic(id, m){
+  if (!/^[a-z0-9_-]{2,30}$/.test(String(id||'')) || !m || !Array.isArray(m.chords) || !m.chords.length) return null;
+  const okPat = s => typeof s === 'string' && /^[x.]{0,32}$/.test(s) ? s : '';
+  const notes = a => Array.isArray(a) ? a.filter(n => Array.isArray(n) ? n.every(x => Number.isFinite(x) && x >= 0 && x < 128) : Number.isFinite(n) && n >= 24 && n < 100) : [];
+  return {name:String(m.name||id).slice(0,40), bpm:Math.min(180, Math.max(60, +m.bpm || 110)), swing:Math.min(.3, Math.max(0, +m.swing || 0)), half:!!m.half,
+    k:okPat(m.k), s:okPat(m.s), h:okPat(m.h), o:okPat(m.o), c:okPat(m.c), bass:okPat(m.bass), bassType:['sine','saw','808'].includes(m.bassType) ? m.bassType : 'sine',
+    chords:m.chords.slice(0,8).map(notes).filter(c => c.length), pad:Math.min(.1, Math.max(0, +m.pad || .05)), pluck:!!m.pluck, bell:!!m.bell, pump:!!m.pump, crackle:!!m.crackle,
+    lp:+m.lp > 300 ? Math.min(8000, +m.lp) : 0, lead:Array.isArray(m.lead) ? m.lead.filter(n => Array.isArray(n) && n.length === 2 && n[0] >= 36 && n[0] < 96 && n[1] > 0 && n[1] <= 16).slice(0,64) : undefined};
+}
+window.ARB_BUILD = build;
+window.ARB_BUILD_MUSIC = buildMusic;
+window.ARB_FONTS = FONT;
+window.ARB_TPL = T;
+window.ARB_MUSIC = M;
+window.ARB_GROUPS = ['Todas','Tendencia','Oferta','Navidad','Lujo','Romántico','Minimal'];
+})();
+
+</script>
+<script>
 (() => {
 const $ = id => document.getElementById(id);
-const W = 720, H = 1280, SCENE = 2.6, END = 3.0;
+const W = 720, H = 1280, END = 3.0;
 const cv = $('cv'), ctx = cv.getContext('2d');
 const BRAND = new Image(); BRAND.src = document.querySelector('.mark').src;
 
@@ -319,11 +501,8 @@ const S = {
 };
 
 /* ---------- Plantillas ---------- */
-const TPL = {
-  lujo:   {bg:'#0F1B3D', acc:'#C9A24A', fg:'#F6EFE1', shade:'rgba(10,16,38,', disp:'italic 700 {s}px "Bodoni Moda", Georgia, serif', body:'600 {s}px Manrope, sans-serif', up:false},
-  oferta: {bg:'#C8102E', acc:'#FFD23F', fg:'#FFFFFF', shade:'rgba(20,0,4,', disp:'400 {s}px Anton, Impact, sans-serif', body:'800 {s}px Manrope, sans-serif', up:true},
-  limpio: {bg:'#FFFFFF', acc:'#B88A2E', fg:'#111111', shade:'rgba(255,255,255,', disp:'800 {s}px Manrope, sans-serif', body:'600 {s}px Manrope, sans-serif', up:false, light:true}
-};
+const TPL = Object.assign({}, window.ARB_TPL || {});
+const MUSIC = Object.assign({}, window.ARB_MUSIC || {});
 const F = (tpl, k, s) => tpl[k].replace('{s}', s);
 
 /* ---------- Fotos de ejemplo (dibujadas) ---------- */
@@ -430,15 +609,20 @@ document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', asyn
 }));
 
 /* ---------- Dibujo del video ---------- */
-const hookDur = () => (S.clip && isFinite(S.clip.duration) && S.clip.duration > 1) ? Math.min(S.clip.duration, 6) : SCENE;
-const total = () => hookDur() + S.scenes.length * SCENE + END;
+const curT = () => TPL[S.tpl] || TPL.lujo;
+const SC = () => curT().scene || 2.6;
+const hookDur = () => (S.clip && isFinite(S.clip.duration) && S.clip.duration > 1) ? Math.min(S.clip.duration, 6) : SC();
+const total = () => hookDur() + S.scenes.length * SC() + END;
 function syncClip(t){
   const c = S.clip; if (!c) return;
   if (Math.abs(c.currentTime - t) > 0.3) { try { c.currentTime = t; } catch {} }
   if (c.paused) c.play().catch(() => {});
 }
 function pauseClip(){ if (S.clip && !S.clip.paused) S.clip.pause(); }
-const ease = x => 1 - Math.pow(1 - Math.min(Math.max(x,0),1), 3);
+const clamp = x => Math.min(Math.max(x,0),1);
+const ease = x => 1 - Math.pow(1 - clamp(x), 3);
+const easeBack = x => { x = clamp(x); const c1 = 1.70158, c3 = c1 + 1; return 1 + c3*Math.pow(x-1,3) + c1*Math.pow(x-1,2); };
+const rnd = i => { const x = Math.sin(i*127.1 + 311.7)*43758.5453; return x - Math.floor(x); };
 function wrap(text, maxW){
   const words = String(text||'').split(/\s+/).filter(Boolean), lines = []; let line = '';
   for (const w of words){ const t = line ? line+' '+w : w; if (ctx.measureText(t).width > maxW && line){ lines.push(line); line = w; } else line = t; }
@@ -446,121 +630,326 @@ function wrap(text, maxW){
 }
 function fitText(text, fontKey, tpl, size, maxW, maxLines){
   let s = size, lines;
-  do { ctx.font = F(tpl, fontKey, s); lines = wrap(text, maxW); s -= 4; } while (lines.length > maxLines && s > 28);
+  do { ctx.font = F(tpl, fontKey, s); lines = wrap(text, maxW); s -= 4; } while ((lines.length > maxLines || lines.some(l => ctx.measureText(l).width > maxW)) && s > 26);
   return {lines, size: s + 4};
 }
-function cover(im, zoom, px, py){
+function coverBox(im, x, y, w, h, zoom, px, py){
   const iw = im.videoWidth || im.naturalWidth || im.width, ih = im.videoHeight || im.naturalHeight || im.height;
   if (!iw || !ih) return;
-  const sc = Math.max(W/iw, H/ih) * zoom, dw = iw*sc, dh = ih*sc;
-  ctx.drawImage(im, (W-dw)/2 + px*(dw-W)/2, (H-dh)/2 + py*(dh-H)/2, dw, dh);
+  const sc = Math.max(w/iw, h/ih) * zoom, dw = iw*sc, dh = ih*sc;
+  ctx.drawImage(im, x + (w-dw)/2 + px*(dw-w)/2, y + (h-dh)/2 + py*(dh-h)/2, dw, dh);
 }
+function cover(im, zoom, px, py){ coverBox(im, 0, 0, W, H, zoom, px, py); }
 function money(v){ const n = parseFloat(v); return isFinite(n) && n>0 ? '$' + (n % 1 ? n.toFixed(2) : n.toFixed(0)) : ''; }
-function drawPrice(tpl, p){
+function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+const lum = h => { const n = parseInt(h.slice(1),16); return (.299*((n>>16)&255) + .587*((n>>8)&255) + .114*(n&255))/255; };
+const inkOn = c => lum(c) > .6 ? '#111111' : '#FFFFFF';
+const disp = (tpl, s) => tpl.up ? String(s||'').toUpperCase() : String(s||'');
+const SAFE = W - 48 - 130; // deja libre la columna de íconos de TikTok
+
+/* Precio */
+function drawPrice(tpl, p, hook){
   if (!$('showPrice').checked) return;
   const pr = money($('price').value), old = money($('oldPrice').value);
   if (!pr) return;
-  const a = ease(p*3);
-  ctx.save(); ctx.globalAlpha = a; ctx.translate(48, 150 - (1-a)*20);
-  ctx.font = F(tpl,'disp', 64); const w1 = ctx.measureText(pr).width;
-  ctx.font = F(tpl,'body', 30); const w2 = old ? ctx.measureText(old).width + 18 : 0;
-  const bw = w1 + w2 + 48;
-  ctx.fillStyle = tpl.acc; roundRect(0,0,bw,92,46); ctx.fill();
-  ctx.fillStyle = tpl.light ? '#fff' : (tpl === TPL.oferta ? '#111' : tpl.bg);
-  ctx.font = F(tpl,'disp', 64); ctx.textBaseline = 'middle'; ctx.fillText(pr, 24, 50);
-  if (old){ ctx.font = F(tpl,'body', 30); ctx.globalAlpha = a*.75; const x = 24 + w1 + 18; ctx.fillText(old, x, 50);
-    ctx.fillRect(x, 50, w2-18, 3); }
+  const style = tpl.price || 'pill';
+  ctx.save();
+  if (style === 'sticker' || (style === 'big' && hook)){
+    const a = easeBack(p*3.2), r = style === 'big' ? 112 : 92, cx = W - 160, cy = style === 'big' ? 300 : 250;
+    ctx.translate(cx, cy); ctx.rotate(-.18 + (1-a)*.6); ctx.scale(a, a);
+    ctx.fillStyle = tpl.acc; ctx.beginPath();
+    for (let i = 0; i < 28; i++){ const ang = i/28*Math.PI*2, rr = i%2 ? r : r*1.1; ctx.lineTo(Math.cos(ang)*rr, Math.sin(ang)*rr); }
+    ctx.closePath(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 18; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.fillStyle = inkOn(tpl.acc); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    let fs = style === 'big' ? 64 : 52; ctx.font = F(tpl,'disp', fs); while (ctx.measureText(pr).width > r*1.55 && fs > 24){ fs -= 2; ctx.font = F(tpl,'disp', fs); } ctx.fillText(pr, 0, old ? -10 : 2);
+    if (old){ ctx.font = F(tpl,'body', 26); ctx.globalAlpha = .8; const w = ctx.measureText(old).width; ctx.fillText(old, 0, 38); ctx.fillRect(-w/2, 38, w, 3); }
+  } else if (style === 'tag'){
+    const a = ease(p*3); ctx.globalAlpha = a; ctx.translate(48, 128 - (1-a)*16);
+    ctx.font = F(tpl,'body', 30); const t = old ? pr + '   ' : pr, w1 = ctx.measureText(t).width, w2 = old ? ctx.measureText(old).width : 0;
+    ctx.strokeStyle = tpl.light ? tpl.fg : tpl.acc; ctx.lineWidth = 2; roundRect(0, 0, w1 + w2 + 40, 58, 8); ctx.stroke();
+    ctx.fillStyle = tpl.light ? tpl.fg : tpl.acc; ctx.textBaseline = 'middle'; ctx.fillText(t, 20, 31);
+    if (old){ ctx.globalAlpha = a*.6; ctx.fillText(old, 20 + w1, 31); ctx.fillRect(20 + w1, 31, w2, 2); }
+  } else {
+    const big = style === 'big', a = ease(p*3);
+    ctx.globalAlpha = a; ctx.translate(48, 150 - (1-a)*20);
+    const ds = big ? 76 : 64;
+    ctx.font = F(tpl,'disp', ds); const w1 = ctx.measureText(pr).width;
+    ctx.font = F(tpl,'body', 30); const w2 = old ? ctx.measureText(old).width + 18 : 0;
+    const bw = w1 + w2 + 48, bh = big ? 104 : 92;
+    ctx.fillStyle = tpl.acc; roundRect(0,0,bw,bh,bh/2); ctx.fill();
+    ctx.fillStyle = inkOn(tpl.acc);
+    ctx.font = F(tpl,'disp', ds); ctx.textBaseline = 'middle'; ctx.fillText(pr, 24, bh/2 + 4);
+    if (old){ ctx.font = F(tpl,'body', 30); ctx.globalAlpha = a*.75; const x = 24 + w1 + 18; ctx.fillText(old, x, bh/2 + 4); ctx.fillRect(x, bh/2 + 4, w2-18, 3); }
+  }
   ctx.restore();
 }
-function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-function brandEyebrow(tpl, a){
-  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = tpl.light ? '#111' : tpl.acc;
-  ctx.font = '800 22px Manrope, sans-serif'; ctx.textBaseline = 'alphabetic';
+function brandEyebrow(tpl, a, y){
+  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = tpl.light ? tpl.fg : tpl.acc;
+  ctx.font = '800 22px Manrope, sans-serif'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
   if ('letterSpacing' in ctx) ctx.letterSpacing = '6px';
-  ctx.fillText("ARBELLA'S", 48, 96); ctx.restore();
+  ctx.fillText("ARBELLA'S", 48, y || 96); ctx.restore();
 }
-function shade(tpl, from){
+function shade(tpl, from, top){
   const g = ctx.createLinearGradient(0, H*from, 0, H);
   g.addColorStop(0, tpl.shade + '0)'); g.addColorStop(.55, tpl.shade + (tpl.light ? '.85)' : '.72)')); g.addColorStop(1, tpl.shade + (tpl.light ? '.97)' : '.9)'));
   ctx.fillStyle = g; ctx.fillRect(0, H*from, W, H*(1-from));
-  const t = ctx.createLinearGradient(0,0,0,260); t.addColorStop(0, tpl.light ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.45)'); t.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle = t; ctx.fillRect(0,0,W,260);
+  const th = top || 260, t = ctx.createLinearGradient(0,0,0,th);
+  t.addColorStop(0, tpl.light ? 'rgba(255,255,255,.75)' : 'rgba(0,0,0,.5)'); t.addColorStop(1, tpl.light ? 'rgba(255,255,255,0)' : 'rgba(0,0,0,0)');
+  ctx.fillStyle = t; ctx.fillRect(0,0,W,th);
 }
-function wipe(tpl, p){
-  if (p >= .32) return; const e = ease(p/.32);
-  ctx.fillStyle = tpl.acc; ctx.fillRect(W*e, 0, W*(1-e), H);
+function bigShadow(tpl, on){ if (on && !tpl.light){ ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 4; } else { ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; } }
+
+/* Foto con movimiento de cámara */
+function photo(im, idx, p, tpl, box, extra){
+  if (!im) return;
+  const m = tpl.motion || 'kenburns', b = box || {x:0,y:0,w:W,h:H};
+  let z = 1, px = 0, py = 0;
+  if (m === 'kenburns'){ const zin = idx % 2 === 0; z = zin ? 1 + .12*p : 1.12 - .12*p; px = (idx%3-1)*.4*p; py = -.2*p; }
+  else if (m === 'punch'){ z = 1.04 + .16*(1 - ease(p*4)) + .04*p; }
+  else if (m === 'pan'){ z = 1.18; px = (idx % 2 ? 1 : -1)*(.9 - 1.8*p); }
+  else { z = 1.02; }
+  z *= (extra || 1);
+  ctx.save(); if (box){ ctx.beginPath(); ctx.rect(b.x, b.y, b.w, b.h); ctx.clip(); }
+  coverBox(im, b.x, b.y, b.w, b.h, z, px, py); ctx.restore();
 }
+
+/* Transiciones al entrar a cada escena */
+function transZoom(tpl, p){ return tpl.trans === 'zoom' && p < .2 ? 1 + .35*(1 - ease(p/.2)) : 1; }
+function transition(tpl, p){
+  const tr = tpl.trans || 'wipe';
+  if (tr === 'wipe'){ if (p >= .32) return; const e = ease(p/.32); ctx.fillStyle = tpl.acc; ctx.fillRect(W*e, 0, W*(1-e), H); }
+  else if (tr === 'flash'){ if (p >= .14) return; ctx.fillStyle = '#fff'; ctx.globalAlpha = .9*(1 - p/.14); ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1; }
+  else if (tr === 'slide'){ if (p >= .3) return; const e = ease(p/.3); ctx.fillStyle = tpl.acc; ctx.fillRect(0, H*e, W, H*(1-e)); ctx.fillStyle = tpl.bg; ctx.fillRect(0, H*e + 24, W, H*(1-e)); }
+  else if (tr === 'blinds'){ if (p >= .3) return; const e = ease(p/.3), n = 8, bw = W/n; ctx.fillStyle = tpl.acc; for (let i = 0; i < n; i++) ctx.fillRect(i*bw + bw*e, 0, bw*(1-e) + 1, H); }
+  else if (tr === 'fade'){ if (p >= .2) return; ctx.fillStyle = tpl.light ? '#fff' : '#000'; ctx.globalAlpha = 1 - p/.2; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1; }
+  else if (tr === 'zoom'){ if (p >= .1) return; ctx.fillStyle = '#fff'; ctx.globalAlpha = .6*(1 - p/.1); ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1; }
+  else if (tr === 'glitch'){
+    if (p >= .16) return; const k = Math.floor(p*100);
+    ctx.save(); ctx.setTransform(1,0,0,1,0,0);
+    for (let i = 0; i < 7; i++){ const y = rnd(k*13+i)*cv.height, h = 20 + rnd(k*7+i)*90, dx = (rnd(k*3+i) - .5)*90;
+      ctx.drawImage(cv, 0, y, cv.width, h, dx, y, cv.width, h); }
+    ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = .35;
+    ctx.fillStyle = '#ff004c'; ctx.fillRect(12, 0, cv.width, cv.height); ctx.fillStyle = '#00f0ff'; ctx.fillRect(-12, 0, cv.width, cv.height);
+    ctx.restore(); ctx.setTransform(1.5,0,0,1.5,0,0);
+  }
+}
+
+/* Efectos */
+function heart(x, y, s){ ctx.beginPath(); ctx.moveTo(x, y + s*.3); ctx.bezierCurveTo(x, y, x - s*.5, y, x - s*.5, y + s*.3); ctx.bezierCurveTo(x - s*.5, y + s*.6, x, y + s*.8, x, y + s); ctx.bezierCurveTo(x, y + s*.8, x + s*.5, y + s*.6, x + s*.5, y + s*.3); ctx.bezierCurveTo(x + s*.5, y, x, y, x, y + s*.3); ctx.fill(); }
+function star(x, y, r){ ctx.beginPath(); for (let i = 0; i < 8; i++){ const a = i*Math.PI/4, rr = i%2 ? r*.25 : r; ctx.lineTo(x + Math.cos(a)*rr, y + Math.sin(a)*rr); } ctx.closePath(); ctx.fill(); }
+function effects(tpl, t){
+  const fx = tpl.fx; if (!fx) return;
+  ctx.save();
+  if (fx === 'snow'){ ctx.fillStyle = '#fff'; for (let i = 0; i < 70; i++){ const sp = 40 + rnd(i)*70, y = (rnd(i+99)*H + t*sp) % H, x = rnd(i+7)*W + Math.sin(t*1.3 + i)*14, r = 1.5 + rnd(i+3)*3.5; ctx.globalAlpha = .45 + rnd(i+5)*.5; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); } }
+  else if (fx === 'sparkle'){ ctx.fillStyle = tpl.light ? tpl.acc : '#fff'; for (let i = 0; i < 18; i++){ const a = Math.max(0, Math.sin(t*2.4 + i*1.7)); ctx.globalAlpha = a*.9; star(rnd(i)*W, rnd(i+50)*H*.85, 6 + rnd(i+9)*12*a); } }
+  else if (fx === 'hearts'){ ctx.fillStyle = tpl.acc; for (let i = 0; i < 14; i++){ const sp = 50 + rnd(i)*60, y = H - ((rnd(i+40)*H + t*sp) % (H + 80)), x = rnd(i+3)*W + Math.sin(t + i)*20; ctx.globalAlpha = .25 + .5*rnd(i+8); heart(x, y, 16 + rnd(i+2)*22); } }
+  else if (fx === 'confetti'){ const cols = [tpl.acc, tpl.fg, '#FFD23F', '#FF4F8B', '#3DD6F5']; for (let i = 0; i < 46; i++){ const sp = 120 + rnd(i)*160, y = (rnd(i+20)*H + t*sp) % H, x = rnd(i+60)*W + Math.sin(t*2 + i)*24; ctx.globalAlpha = .85; ctx.fillStyle = cols[i % cols.length]; ctx.save(); ctx.translate(x, y); ctx.rotate(t*3 + i); ctx.fillRect(-5, -9, 10, 18); ctx.restore(); } }
+  else if (fx === 'grain'){ const k = Math.floor(t*24); for (let i = 0; i < 380; i++){ ctx.globalAlpha = .07; ctx.fillStyle = rnd(k*400 + i) > .5 ? '#fff' : '#000'; ctx.fillRect(rnd(k*911 + i)*W, rnd(k*577 + i)*H, 2, 2); } }
+  else if (fx === 'bokeh'){ for (let i = 0; i < 12; i++){ const x = (rnd(i)*W + t*12*(i%2 ? 1 : -1)) % W, y = rnd(i+30)*H, r = 40 + rnd(i+4)*90; const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, tpl.acc); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.globalAlpha = .16 + .1*Math.sin(t + i); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r*2, r*2); } }
+  ctx.restore();
+}
+function storyBars(n, idx, p){
+  const gap = 6, w = (W - 48 - gap*(n-1))/n;
+  for (let i = 0; i < n; i++){ ctx.fillStyle = 'rgba(255,255,255,.35)'; roundRect(24 + i*(w+gap), 22, w, 5, 2.5); ctx.fill();
+    const f = i < idx ? 1 : i === idx ? p : 0; if (f > 0){ ctx.fillStyle = '#fff'; roundRect(24 + i*(w+gap), 22, w*f, 5, 2.5); ctx.fill(); } }
+}
+
+/* Textos por diseño */
+function lineIn(tpl, lines, size, x, y0, lh, p, align, color){
+  ctx.textAlign = align || 'left';
+  lines.forEach((l, i) => { const a = ease((p - .06 - i*.08) * 4); ctx.globalAlpha = a; ctx.fillStyle = color || tpl.fg; ctx.font = F(tpl,'disp', size); ctx.fillText(l, x, y0 + i*lh + (1-a)*30); });
+  ctx.globalAlpha = 1; ctx.textAlign = 'left';
+}
+function boxLines(tpl, lines, font, size, cy, p, bg, ink){
+  ctx.font = font; const lh = size*1.32, y0 = cy - lines.length*lh/2;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  lines.forEach((l, i) => { const a = easeBack((p - .05 - i*.07)*4); if (a <= 0) return;
+    const w = ctx.measureText(l).width + 34, x = W/2;
+    ctx.save(); ctx.translate(x, y0 + i*lh + lh/2); ctx.scale(a, a);
+    ctx.fillStyle = bg; roundRect(-w/2, -lh/2 + 3, w, lh - 6, 12); ctx.fill();
+    ctx.fillStyle = ink; ctx.fillText(l, 0, 2); ctx.restore(); });
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+}
+function hookText(tpl, txt, p){
+  const L = tpl.layout;
+  if (L === 'portada'){
+    const T = fitText(disp(tpl, txt), 'disp', tpl, 104, W - 96, 4), lh = T.size*1.02;
+    bigShadow(tpl, true); lineIn(tpl, T.lines, T.size, 48, 190 + T.size*.8, lh, p); bigShadow(tpl, false);
+    ctx.fillStyle = tpl.acc; ctx.fillRect(48, 190 + T.size*.8 + T.lines.length*lh - lh*.6, 160*ease((p-.3)*3), 6);
+  } else if (L === 'subtitulo' || L === 'lista'){
+    ctx.font = F(tpl,'body', 44).replace(/^\d+/, '800'); const lines = wrap(txt, W - 150).slice(0, 4);
+    boxLines(tpl, lines, ctx.font, 44, H*.56, p, tpl.light ? tpl.fg : '#FFFFFF', tpl.light ? tpl.bg : '#111111');
+  } else if (L === 'split'){
+    const T = fitText(disp(tpl, txt), 'disp', tpl, 70, SAFE + 40, 3);
+    lineIn(tpl, T.lines, T.size, 48, H*.66 + T.size, T.size*1.1, p, 'left', tpl.light ? tpl.fg : tpl.fg);
+  } else if (L === 'marco'){
+    const T = fitText(disp(tpl, txt), 'disp', tpl, 62, W - 110, 3);
+    lineIn(tpl, T.lines, T.size, W/2, H*.79, T.size*1.12, p, 'center', tpl.fg);
+  } else if (L === 'cine'){
+    const T = fitText(disp(tpl, txt), 'disp', tpl, 54, W - 120, 3), lh = T.size*1.15;
+    bigShadow(tpl, true); lineIn(tpl, T.lines, T.size, W/2, H - 170 - (T.lines.length-1)*lh, lh, p, 'center', '#FFFFFF'); bigShadow(tpl, false);
+  } else if (L === 'neon'){
+    const T = fitText(disp(tpl, txt), 'disp', tpl, 86, W - 110, 4), lh = T.size*1.08, y0 = H*.48 - (T.lines.length-1)*lh/2;
+    ctx.save(); ctx.shadowColor = tpl.acc; ctx.shadowBlur = 28 + 10*Math.sin(p*20);
+    lineIn(tpl, T.lines, T.size, W/2, y0, lh, p, 'center', tpl.fg); ctx.restore();
+  } else if (L === 'beat' || L === 'sticker'){
+    const T = fitText(disp(tpl, txt), 'disp', tpl, 92, W - 100, 4), lh = T.size*(L === 'sticker' ? 1.36 : 1.04), y0 = H*.52 - (T.lines.length-1)*lh/2;
+    ctx.textAlign = 'center';
+    T.lines.forEach((l, i) => { const a = easeBack((p - i*.09)*4.5); if (a <= 0) return; ctx.save(); ctx.translate(W/2, y0 + i*lh); ctx.scale(a, a); if (L === 'sticker') ctx.rotate((i%2 ? 1 : -1)*.05);
+      if (L === 'sticker'){ ctx.font = F(tpl,'disp', T.size); const w = ctx.measureText(l).width + 40; ctx.fillStyle = i%2 ? '#FFFFFF' : tpl.acc; roundRect(-w/2, -T.size*.95, w, T.size*1.25, 14); ctx.fill(); ctx.fillStyle = i%2 ? '#111111' : inkOn(tpl.acc); }
+      else { ctx.fillStyle = tpl.fg; bigShadow(tpl, true); }
+      ctx.font = F(tpl,'disp', T.size); ctx.fillText(l, 0, 0); ctx.restore(); });
+    ctx.textAlign = 'left'; bigShadow(tpl, false);
+  } else {
+    const T = fitText(disp(tpl, txt), 'disp', tpl, 82, SAFE, 4), lh = T.size*1.12, y0 = H*.66 - (T.lines.length-1)*lh/2;
+    lineIn(tpl, T.lines, T.size, 48, y0, lh, p);
+    ctx.fillStyle = tpl.acc; ctx.fillRect(48, y0 + T.lines.length*lh - lh*.55, 140*ease((p-.3)*3), 6);
+  }
+}
+function sceneText(tpl, s, idx, n, p){
+  const L = tpl.layout, a = ease((p-.12)*3.5), b = ease((p-.28)*3.5), num = String(idx).padStart(2,'0');
+  if (L === 'subtitulo'){
+    ctx.font = '800 46px Manrope, sans-serif'; const tl = wrap(s.t, W - 150).slice(0,2);
+    boxLines(tpl, tl, ctx.font, 46, H*.6, p, tpl.light ? tpl.fg : '#FFFFFF', tpl.light ? tpl.bg : '#111111');
+    ctx.font = '600 32px Manrope, sans-serif'; const dl = wrap(s.d, W - 170).slice(0,2);
+    boxLines(tpl, dl, ctx.font, 32, H*.6 + tl.length*30 + 60, p - .15, tpl.acc, inkOn(tpl.acc));
+  } else if (L === 'lista'){
+    const items = S.scenes.slice(0, idx), cardH = 40 + items.length*74, y0 = H*.86 - cardH;
+    ctx.save(); ctx.globalAlpha = .94; ctx.fillStyle = tpl.light ? '#FFFFFF' : 'rgba(255,255,255,.95)'; roundRect(36, y0, W - 72 - 90, cardH, 26); ctx.fill(); ctx.restore();
+    items.forEach((it, i) => { const last = i === items.length - 1, e = last ? easeBack((p-.1)*4) : 1, y = y0 + 30 + i*74;
+      ctx.save(); ctx.globalAlpha = last ? clamp(e) : .85; ctx.fillStyle = tpl.acc; ctx.beginPath(); ctx.arc(74, y + 22, 18*e, 0, 7); ctx.fill();
+      ctx.strokeStyle = inkOn(tpl.acc); ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(65, y + 22); ctx.lineTo(72, y + 30); ctx.lineTo(84, y + 14); ctx.stroke();
+      ctx.fillStyle = '#111'; ctx.font = '800 30px Manrope, sans-serif'; const tt = wrap(it.t, W - 300)[0] || ''; ctx.fillText(tt, 108 + (1-e)*20, y + 22);
+      ctx.fillStyle = '#555'; ctx.font = '600 22px Manrope, sans-serif'; ctx.fillText(wrap(it.d, W - 300)[0] || '', 108, y + 50); ctx.restore(); });
+  } else if (L === 'beat'){
+    const T = fitText(disp(tpl, s.t), 'disp', tpl, 120, W - 100, 2), lh = T.size*1.0, y0 = H*.55 - (T.lines.length-1)*lh/2;
+    ctx.textAlign = 'center'; bigShadow(tpl, true);
+    T.lines.forEach((l, i) => { const e = easeBack((p - i*.06)*5); ctx.save(); ctx.translate(W/2, y0 + i*lh); ctx.scale(e, e); ctx.fillStyle = tpl.fg; ctx.font = F(tpl,'disp', T.size); ctx.fillText(l, 0, 0); ctx.restore(); });
+    bigShadow(tpl, false); ctx.globalAlpha = b; ctx.font = F(tpl,'body', 32); ctx.fillStyle = tpl.acc; ctx.fillText(s.d, W/2, y0 + T.lines.length*lh + 10); ctx.globalAlpha = 1; ctx.textAlign = 'left';
+  } else if (L === 'sticker'){
+    ctx.save(); ctx.translate(60, H*.62); ctx.rotate(-.06); const e = easeBack((p-.08)*4); ctx.scale(e, e);
+    const T = fitText(disp(tpl, s.t), 'disp', tpl, 66, W - 220, 2); ctx.font = F(tpl,'disp', T.size);
+    const tw = Math.max(...T.lines.map(l => ctx.measureText(l).width)) + 44, th = T.lines.length*T.size*1.1 + 30;
+    ctx.fillStyle = tpl.acc; ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 16; roundRect(0, 0, tw, th, 18); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.fillStyle = inkOn(tpl.acc); T.lines.forEach((l, i) => ctx.fillText(l, 22, 18 + T.size*.85 + i*T.size*1.1)); ctx.restore();
+    ctx.save(); ctx.translate(90, H*.62 + T.lines.length*T.size*1.1 + 60); ctx.rotate(.04); const f = easeBack((p-.25)*4); ctx.scale(f, f);
+    ctx.font = '700 32px Montserrat, Manrope, sans-serif'; const dl = wrap(s.d, W - 260).slice(0,2), dw = Math.max(...dl.map(l => ctx.measureText(l).width), 10) + 36;
+    ctx.fillStyle = '#FFFFFF'; roundRect(0, 0, dw, dl.length*42 + 24, 14); ctx.fill(); ctx.fillStyle = '#111'; dl.forEach((l, i) => ctx.fillText(l, 18, 44 + i*42)); ctx.restore();
+  } else if (L === 'neon'){
+    const T = fitText(disp(tpl, s.t), 'disp', tpl, 84, W - 110, 2), lh = T.size*1.05, y0 = H*.5;
+    ctx.save(); ctx.shadowColor = tpl.acc; ctx.shadowBlur = 30; lineIn(tpl, T.lines, T.size, W/2, y0, lh, p, 'center', tpl.fg); ctx.restore();
+    ctx.globalAlpha = b; ctx.textAlign = 'center'; ctx.font = F(tpl,'body', 34); ctx.fillStyle = tpl.acc; ctx.fillText(s.d, W/2, y0 + T.lines.length*lh + 10); ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+  } else if (L === 'cine'){
+    ctx.textAlign = 'center'; ctx.globalAlpha = a; ctx.fillStyle = tpl.acc; ctx.font = '700 20px Manrope, sans-serif'; if ('letterSpacing' in ctx) ctx.letterSpacing = '6px';
+    ctx.fillText('CAPÍTULO ' + num, W/2, H - 290); if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+    const T = fitText(disp(tpl, s.t), 'disp', tpl, 60, W - 120, 2); ctx.fillStyle = '#FFFFFF'; ctx.font = F(tpl,'disp', T.size); bigShadow(tpl, true);
+    T.lines.forEach((l, i) => ctx.fillText(l, W/2, H - 230 + i*T.size*1.1 + (1-a)*16)); bigShadow(tpl, false);
+    ctx.globalAlpha = b; ctx.font = F(tpl,'body', 30); ctx.fillStyle = '#EDEDED'; ctx.fillText(s.d, W/2, H - 230 + T.lines.length*T.size*1.1 + 6); ctx.globalAlpha = 1; ctx.textAlign = 'left';
+  } else {
+    // clasico, portada, split, marco
+    const center = L === 'marco', top = L === 'portada';
+    const maxW = center ? W - 110 : (L === 'split' ? W - 96 : SAFE);
+    const T = fitText(disp(tpl, s.t), 'disp', tpl, L === 'split' || center ? 64 : 76, maxW, 2);
+    ctx.font = F(tpl,'body', 34); const D = wrap(s.d, maxW).slice(0, center ? 2 : 3);
+    const lh = T.size*1.1, blockH = T.lines.length*lh + 30 + D.length*46;
+    let y0 = top ? 210 : L === 'split' ? H*.66 + 20 : center ? H*.76 : H*.78 - blockH;
+    const x = center ? W/2 : 48; ctx.textAlign = center ? 'center' : 'left';
+    ctx.fillStyle = tpl.acc; if (!center) ctx.fillRect(48, y0 - 26, 90*a, 5);
+    ctx.font = '800 22px Manrope, sans-serif'; ctx.globalAlpha = a; ctx.fillStyle = tpl.acc;
+    ctx.fillText(num + ' / ' + String(n).padStart(2,'0'), center ? W/2 : 152, y0 - 18);
+    bigShadow(tpl, top);
+    T.lines.forEach((l, i) => { ctx.globalAlpha = a; ctx.fillStyle = tpl.fg; ctx.font = F(tpl,'disp', T.size); ctx.fillText(l, x - (center ? 0 : (1-a)*40), y0 + lh*(i+.8)); });
+    ctx.globalAlpha = b; ctx.font = F(tpl,'body', 34); ctx.fillStyle = tpl.fg;
+    D.forEach((l, i) => ctx.fillText(l, x, y0 + T.lines.length*lh + 30 + i*46 + (1-b)*16));
+    bigShadow(tpl, false); ctx.globalAlpha = 1; ctx.textAlign = 'left';
+  }
+}
+
+/* Fondo y foto según diseño */
+function background(tpl, im, idx, p, im2){
+  const L = tpl.layout, zx = transZoom(tpl, p);
+  ctx.fillStyle = tpl.bg; ctx.fillRect(0,0,W,H);
+  if (L === 'split'){
+    photo(im, idx, p, tpl, {x:0, y:0, w:W, h:H*.62}, zx);
+    ctx.fillStyle = tpl.acc; ctx.fillRect(0, H*.62, W*ease(p*3), 8);
+    const g = ctx.createLinearGradient(0,0,0,220); g.addColorStop(0,'rgba(0,0,0,.35)'); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0,0,W,220);
+  } else if (L === 'marco'){
+    const fw = W - 120, fh = H*.58, fx = 60, fy = 150, rot = (idx%2 ? 1 : -1)*.025*(1 - ease(p*2)) ;
+    ctx.save(); ctx.translate(W/2, fy + fh/2); ctx.rotate(rot); ctx.translate(-W/2, -(fy + fh/2));
+    ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 16; ctx.fillStyle = '#FFFFFF'; roundRect(fx - 14, fy - 14, fw + 28, fh + 28, 22); ctx.fill(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    ctx.save(); roundRect(fx, fy, fw, fh, 12); ctx.clip(); photo(im, idx, p, tpl, {x:fx, y:fy, w:fw, h:fh}, zx); ctx.restore(); ctx.restore();
+  } else {
+    if (L === 'beat' && im2 && p >= .5){ photo(im2, idx+1, (p-.5)*2, tpl, null, 1.08); }
+    else photo(im, idx, p, tpl, null, zx);
+    if (L === 'portada') shade(tpl, .62, 640);
+    else if (L === 'neon'){ ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(0,0,W,H); const v = ctx.createRadialGradient(W/2,H/2,H*.2,W/2,H/2,H*.75); v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,.65)'); ctx.fillStyle = v; ctx.fillRect(0,0,W,H); }
+    else if (L === 'cine'){ const g = ctx.createLinearGradient(0,H*.55,0,H); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,.75)'); ctx.fillStyle = g; ctx.fillRect(0,H*.55,W,H*.45); ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,120); ctx.fillRect(0,H-120,W,120); }
+    else if (L === 'subtitulo' || L === 'sticker'){ const t = ctx.createLinearGradient(0,0,0,240); t.addColorStop(0,'rgba(0,0,0,.4)'); t.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle = t; ctx.fillRect(0,0,W,240); }
+    else if (L === 'beat'){ ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(0,0,W,H); if (p >= .5 && p < .56){ ctx.fillStyle = '#fff'; ctx.globalAlpha = 1 - (p-.5)/.06; ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1; } }
+    else shade(tpl, idx === 0 ? .30 : .45);
+  }
+}
+
 function drawFrame(t){
   ctx.setTransform(1.5, 0, 0, 1.5, 0, 0); // dibujo en 720×1280, salida 1080×1920
-  const tpl = TPL[S.tpl], n = S.scenes.length, imgs = S.images;
-  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+  const tpl = curT(), n = S.scenes.length, imgs = S.images, SD = SC(), L = tpl.layout;
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.globalAlpha = 1; ctx.shadowBlur = 0;
   const hd = hookDur();
   let sceneIdx, p;
   if (t < hd){ sceneIdx = 0; p = t / hd; }
-  else { const r = t - hd; sceneIdx = 1 + Math.floor(r / SCENE); p = (r - (sceneIdx-1)*SCENE) / SCENE; }
+  else { const r = t - hd; sceneIdx = 1 + Math.floor(r / SD); p = (r - (sceneIdx-1)*SD) / SD; }
   if (sceneIdx !== 0) pauseClip();
   if (sceneIdx <= n){
-    const im = imgs[sceneIdx % imgs.length];
-    ctx.fillStyle = tpl.bg; ctx.fillRect(0,0,W,H);
-    const zIn = sceneIdx % 2 === 0, z = zIn ? 1 + .12*p : 1.12 - .12*p;
-    if (sceneIdx === 0 && S.clip && S.clip.readyState >= 2){ syncClip(t); cover(S.clip, 1, 0, 0); }
-    else if (im) cover(im, z, (sceneIdx%3-1)*.4*p, -.2*p);
-    shade(tpl, sceneIdx === 0 ? .30 : .45);
-    brandEyebrow(tpl, 1);
-    const maxW = W - 48 - 130; // deja libre la columna de íconos de TikTok
-    if (sceneIdx === 0){
-      const txt = S.hooks[S.hookIdx] || '';
-      const {lines, size} = fitText(tpl.up ? txt.toUpperCase() : txt, 'disp', tpl, 82, maxW, 4);
-      const lh = size*1.12, y0 = H*.66 - (lines.length-1)*lh/2;
-      lines.forEach((l, i) => {
-        const a = ease((p - .06 - i*.08) * 4);
-        ctx.globalAlpha = a; ctx.fillStyle = tpl.fg; ctx.font = F(tpl,'disp', size);
-        ctx.fillText(l, 48, y0 + i*lh + (1-a)*30);
-      });
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = tpl.acc; ctx.fillRect(48, y0 + lines.length*lh - lh*.55, 140*ease((p-.3)*3), 6);
-    } else {
-      const s = S.scenes[sceneIdx-1] || {t:'',d:''};
-      const T = fitText(tpl.up ? (s.t||'').toUpperCase() : s.t, 'disp', tpl, 76, maxW, 2);
-      ctx.font = F(tpl,'body', 34); const D = wrap(s.d, maxW).slice(0,3);
-      const lh = T.size*1.1, blockH = T.lines.length*lh + 30 + D.length*46;
-      const y0 = H*.78 - blockH;
-      const a = ease((p-.12)*3.5);
-      ctx.fillStyle = tpl.acc; ctx.fillRect(48, y0 - 26, 90*a, 5);
-      ctx.font = '800 22px Manrope, sans-serif'; ctx.globalAlpha = a; ctx.fillStyle = tpl.acc;
-      ctx.fillText(String(sceneIdx).padStart(2,'0') + ' / ' + String(n).padStart(2,'0'), 152, y0 - 18);
-      T.lines.forEach((l, i) => { ctx.globalAlpha = a; ctx.fillStyle = tpl.fg; ctx.font = F(tpl,'disp', T.size); ctx.fillText(l, 48 - (1-a)*40, y0 + lh*(i+.8)); });
-      const b = ease((p-.28)*3.5); ctx.globalAlpha = b; ctx.font = F(tpl,'body', 34); ctx.fillStyle = tpl.fg;
-      D.forEach((l, i) => ctx.fillText(l, 48, y0 + T.lines.length*lh + 30 + i*46 + (1-b)*16));
-      ctx.globalAlpha = 1;
-    }
-    drawPrice(tpl, sceneIdx === 0 ? p : 1);
-    if (sceneIdx > 0) wipe(tpl, p);
+    const im = imgs[sceneIdx % imgs.length], im2 = imgs[(sceneIdx + 1) % imgs.length];
+    if (sceneIdx === 0 && S.clip && S.clip.readyState >= 2){ ctx.fillStyle = tpl.bg; ctx.fillRect(0,0,W,H); syncClip(t); cover(S.clip, 1, 0, 0); shade(tpl, .30); }
+    else background(tpl, im, sceneIdx, p, im2);
+    effects(tpl, t);
+    const bars = L === 'subtitulo' || L === 'beat' || L === 'sticker' || L === 'lista';
+    if (bars) storyBars(n + 2, sceneIdx, p);
+    if (L !== 'cine') brandEyebrow(tpl, 1, bars ? 70 : 96); else { ctx.save(); ctx.textAlign = 'center'; ctx.fillStyle = tpl.acc; ctx.font = '800 20px Manrope, sans-serif'; if ('letterSpacing' in ctx) ctx.letterSpacing = '8px'; ctx.fillText("ARBELLA'S", W/2, 72); ctx.restore(); }
+    if (sceneIdx === 0) hookText(tpl, S.hooks[S.hookIdx] || '', p);
+    else sceneText(tpl, S.scenes[sceneIdx-1] || {t:'',d:''}, sceneIdx, n, p);
+    drawPrice(tpl, sceneIdx === 0 ? p : 1, sceneIdx === 0);
+    if (sceneIdx > 0) transition(tpl, p);
   } else {
-    p = (t - hd - n*SCENE) / END;
+    p = (t - hd - n*SD) / END;
     ctx.fillStyle = tpl.bg; ctx.fillRect(0,0,W,H);
-    const last = imgs[0];
-    if (last){ ctx.save(); ctx.globalAlpha = tpl.light ? .12 : .22; cover(last, 1.2 - .05*p, 0, 0); ctx.restore(); }
-    const a = ease(p*3), cx = W/2;
-    // escudo de la marca
-    ctx.save(); ctx.globalAlpha = a; const es = 230, ex = cx - es/2, ey = 200 + (1-a)*30;
-    roundRect(ex, ey, es, es, 52); ctx.clip();
-    if (BRAND.complete && BRAND.naturalWidth) ctx.drawImage(BRAND, ex, ey, es, es); else { ctx.fillStyle = '#171A3D'; ctx.fillRect(ex, ey, es, es); }
-    ctx.restore();
-    ctx.textAlign = 'center'; ctx.globalAlpha = a; ctx.fillStyle = tpl.light ? '#111' : tpl.acc;
-    ctx.font = '800 30px Manrope, sans-serif'; if ('letterSpacing' in ctx) ctx.letterSpacing = '8px';
-    ctx.fillText("ARBELLA'S", cx + 4, 470); if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+    const a = ease(p*3), cx = W/2, collage = ['marco','sticker','lista','beat','split','subtitulo'].includes(L) && imgs.length;
+    let yText;
+    if (collage){
+      const pos = [[-200, 300, -.14], [0, 260, .03], [200, 310, .15]];
+      pos.forEach((q, i) => { const im = imgs[i % imgs.length], e = easeBack((p - i*.06)*3.2); if (e <= 0) return;
+        ctx.save(); ctx.translate(cx + q[0], q[1] + (1-e)*700); ctx.rotate(q[2]*e);
+        ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 30; ctx.fillStyle = '#fff'; ctx.fillRect(-120, -160, 240, 350); ctx.shadowBlur = 0;
+        coverBox(im, -108, -148, 216, 288, 1, 0, 0); ctx.restore(); });
+      yText = 640;
+    } else {
+      const last = imgs[0];
+      if (last){ ctx.save(); ctx.globalAlpha = tpl.light ? .12 : .22; cover(last, 1.2 - .05*p, 0, 0); ctx.restore(); }
+      ctx.save(); ctx.globalAlpha = a; const es = 230, ex = cx - es/2, ey = 200 + (1-a)*30;
+      roundRect(ex, ey, es, es, 52); ctx.clip();
+      if (BRAND.complete && BRAND.naturalWidth) ctx.drawImage(BRAND, ex, ey, es, es); else { ctx.fillStyle = '#171A3D'; ctx.fillRect(ex, ey, es, es); }
+      ctx.restore();
+      ctx.textAlign = 'center'; ctx.globalAlpha = a; ctx.fillStyle = tpl.light ? tpl.fg : tpl.acc;
+      ctx.font = '800 30px Manrope, sans-serif'; if ('letterSpacing' in ctx) ctx.letterSpacing = '8px';
+      ctx.fillText("ARBELLA'S", cx + 4, 470); if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+      yText = 640;
+    }
+    effects(tpl, t);
+    ctx.textAlign = 'center';
     const b = ease((p-.15)*3);
-    const C = fitText(tpl.up ? S.cta.toUpperCase() : S.cta, 'disp', tpl, 78, W-120, 3);
+    const C = fitText(disp(tpl, S.cta), 'disp', tpl, 78, W-120, 3);
     ctx.globalAlpha = b; ctx.fillStyle = tpl.fg; ctx.font = F(tpl,'disp', C.size);
-    C.lines.forEach((l,i) => ctx.fillText(l, cx, 640 + i*C.size*1.1 + (1-b)*24));
+    C.lines.forEach((l,i) => ctx.fillText(l, cx, yText + i*C.size*1.1 + (1-b)*24));
     const pr = $('showPrice').checked ? money($('price').value) : '';
-    const yb = 640 + C.lines.length*C.size*1.1 + 50, c = ease((p-.3)*3);
-    ctx.globalAlpha = c;
+    const yb = yText + C.lines.length*C.size*1.1 + 50, c = easeBack((p-.3)*3);
+    ctx.globalAlpha = clamp(c);
     const label = (pr ? pr + '  ·  ' : '') + 'arbellasusa.com';
     ctx.font = '800 32px Manrope, sans-serif'; const lw = ctx.measureText(label).width + 64;
-    ctx.fillStyle = tpl.acc; roundRect(cx - lw/2, yb, lw, 76, 38); ctx.fill();
-    ctx.fillStyle = S.tpl==='oferta' ? '#111' : (tpl.light ? '#fff' : tpl.bg); ctx.textBaseline = 'middle'; ctx.fillText(label, cx, yb + 39);
+    ctx.save(); ctx.translate(cx, yb + 38); ctx.scale(Math.max(c, .01), Math.max(c, .01));
+    ctx.fillStyle = tpl.acc; roundRect(-lw/2, -38, lw, 76, 38); ctx.fill();
+    ctx.fillStyle = inkOn(tpl.acc); ctx.textBaseline = 'middle'; ctx.fillText(label, 0, 1); ctx.restore();
+    if (collage){ ctx.globalAlpha = ease((p-.45)*3)*.85; ctx.fillStyle = tpl.light ? tpl.fg : tpl.acc; ctx.font = '800 24px Manrope, sans-serif'; if ('letterSpacing' in ctx) ctx.letterSpacing = '10px'; ctx.textBaseline = 'alphabetic'; ctx.fillText("ARBELLA'S", cx + 5, yb + 150); if ('letterSpacing' in ctx) ctx.letterSpacing = '0px'; }
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.globalAlpha = 1;
   }
 }
@@ -573,34 +962,111 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 $('replay').onclick = restart;
-$('tpl').addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return;
-  S.tpl = b.dataset.t; document.querySelectorAll('#tpl button').forEach(x => x.setAttribute('aria-pressed', x===b)); restart();
-});
 
-/* ---------- Ritmo generado ---------- */
-function startBeat(ac, dest){
-  const bpm = 100, beat = 60/bpm, start = ac.currentTime + .05, len = total();
-  const out = ac.createGain(); out.gain.value = .55; out.connect(dest); out.connect(ac.destination);
-  const chords = [[220,277.18,329.63],[196,246.94,293.66],[174.61,220,261.63],[196,246.94,329.63]];
-  for (let b = 0; b*beat < len; b++){
-    const tt = start + b*beat;
-    // bombo
-    const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(120, tt); o.frequency.exponentialRampToValueAtTime(45, tt+.18);
-    g.gain.setValueAtTime(.9, tt); g.gain.exponentialRampToValueAtTime(.001, tt+.3); o.connect(g).connect(out); o.start(tt); o.stop(tt+.32);
-    // platillo en contratiempo
-    const buf = ac.createBuffer(1, ac.sampleRate*.05, ac.sampleRate), d = buf.getChannelData(0); for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*(1-i/d.length);
-    const ns = ac.createBufferSource(), hp = ac.createBiquadFilter(), hg = ac.createGain(); ns.buffer = buf; hp.type='highpass'; hp.frequency.value = 7000; hg.gain.value = .25;
-    ns.connect(hp).connect(hg).connect(out); ns.start(tt + beat/2);
-    // acordes cada 4 tiempos
-    if (b % 4 === 0){
-      chords[(b/4)%4].forEach(f => { const p = ac.createOscillator(), pg = ac.createGain(), lp = ac.createBiquadFilter(); p.type='sawtooth'; p.frequency.value = f; lp.type='lowpass'; lp.frequency.value = 900;
-        pg.gain.setValueAtTime(0, tt); pg.gain.linearRampToValueAtTime(.05, tt+.3); pg.gain.linearRampToValueAtTime(0, Math.min(tt+beat*4, start+len));
-        p.connect(lp).connect(pg).connect(out); p.start(tt); p.stop(tt+beat*4+.05); });
-    }
-  }
-  out.gain.setValueAtTime(.55, start + len - .8); out.gain.linearRampToValueAtTime(0, start + len);
+/* ---------- Selector de plantillas ---------- */
+let tplGroup = 'Todas';
+const isNew = tp => tp.trend && tp.fecha && (Date.now() - Date.parse(tp.fecha)) < 8*864e5;
+function renderTplGroups(){
+  const box = $('tplGroups'); box.innerHTML = '';
+  (window.ARB_GROUPS || ['Todas']).forEach(g => { const b = document.createElement('button'); b.type = 'button'; b.textContent = g; b.setAttribute('aria-pressed', g === tplGroup);
+    b.onclick = () => { tplGroup = g; renderTplGroups(); renderTplList(); }; box.append(b); });
 }
+function renderTplList(){
+  const box = $('tpl'), q = ($('tplSearch').value || '').toLowerCase().trim(); box.innerHTML = '';
+  const list = Object.values(TPL).filter(tp => (tplGroup === 'Todas' || tp.group === tplGroup) && (!q || (tp.name + ' ' + tp.group + ' ' + (tp.inspiracion||'')).toLowerCase().includes(q)));
+  list.sort((a, b) => (b.trend ? 1 : 0) - (a.trend ? 1 : 0) || String(b.fecha||'').localeCompare(String(a.fecha||'')));
+  list.forEach(tp => {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.t = tp.id; b.setAttribute('aria-pressed', tp.id === S.tpl); b.title = tp.inspiracion || (tp.group + ' · ' + tp.layout);
+    const nm = document.createElement('span'); nm.textContent = tp.name; b.append(nm);
+    const sw = document.createElement('div'); sw.className = 'sw'; [tp.bg, tp.acc, tp.fg].forEach(c => { const i = document.createElement('i'); i.style.background = c; sw.append(i); }); b.append(sw);
+    if (isNew(tp)){ const n = document.createElement('em'); n.className = 'new'; n.textContent = 'NUEVA'; b.append(n); }
+    b.onclick = () => selectTpl(tp.id); box.append(b);
+  });
+  $('tplCount').textContent = list.length + ' de ' + Object.keys(TPL).length + ' plantillas';
+}
+function selectTpl(id){
+  if (!TPL[id]) return; S.tpl = id; const tp = TPL[id];
+  document.querySelectorAll('#tpl button').forEach(x => x.setAttribute('aria-pressed', x.dataset.t === id));
+  $('tplInfo').textContent = tp.name + ' · ' + tp.group + (tp.inspiracion ? ' · ' + tp.inspiracion : '') + ' · Música: ' + ((MUSIC[tp.music]||{}).name || tp.music);
+  document.fonts.load(F(tp,'disp',40)).catch(()=>{}).then(() => { $('dur').textContent = Math.round(total()) + ' s · 1080×1920'; restart(); });
+}
+$('tplSearch').addEventListener('input', renderTplList);
+function renderMusicSel(){
+  const sel = $('musicSel'), cur = sel.value || 'auto'; sel.innerHTML = '<option value="auto">Según la plantilla</option>';
+  Object.entries(MUSIC).forEach(([k, m]) => { const o = document.createElement('option'); o.value = k; o.textContent = m.name; sel.append(o); });
+  sel.value = MUSIC[cur] ? cur : 'auto';
+}
+async function loadTrends(){
+  try {
+    const r = await fetch('tendencias.json?v=' + Date.now(), {cache:'no-store'}); if (!r.ok) return;
+    const data = await r.json();
+    Object.entries((data && data.musica) || {}).forEach(([k, m]) => { const mm = window.ARB_BUILD_MUSIC && window.ARB_BUILD_MUSIC(k, m); if (mm && !MUSIC[k]) MUSIC[k] = mm; });
+    ((data && data.plantillas) || []).forEach(e => { const tp = window.ARB_BUILD && window.ARB_BUILD(e); if (tp && !TPL[tp.id]) TPL[tp.id] = tp; });
+    renderMusicSel(); renderTplList();
+    if (pendingTpl && TPL[pendingTpl]) { selectTpl(pendingTpl); pendingTpl = null; }
+  } catch {}
+}
+let pendingTpl = null;
+
+/* ---------- Música generada (composiciones originales y melodías de dominio público) ---------- */
+let noiseBuf = null;
+function noise(ac){ if (noiseBuf && noiseBuf.sampleRate === ac.sampleRate) return noiseBuf; const b = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1; return noiseBuf = b; }
+const hz = n => 440*Math.pow(2, (n-69)/12);
+function startBeat(ac, dest){
+  const key = ($('musicSel').value && $('musicSel').value !== 'auto') ? $('musicSel').value : curT().music;
+  const m = MUSIC[key] || MUSIC.pop || Object.values(MUSIC)[0];
+  const len = total(), start = ac.currentTime + .06, step = 60/m.bpm/4, N = Math.ceil(len/step);
+  const out = ac.createGain(); out.gain.value = .75;
+  const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4;
+  out.connect(comp); if (dest) comp.connect(dest); comp.connect(ac.destination);
+  let bus = out; if (m.lp){ const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = m.lp; f.connect(out); bus = f; }
+  const drums = ac.createGain(); drums.gain.value = .9; drums.connect(bus);
+  const mus = ac.createGain(); mus.gain.value = 1; mus.connect(bus);
+  const nz = noise(ac), on = (s, i) => !!s && s.length > 0 && s[i % s.length] === 'x';
+  const env = (g, t, a, peak, d) => { g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); };
+  const kick = (t, long) => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(long ? 95 : 130, t); o.frequency.exponentialRampToValueAtTime(long ? 38 : 45, t + (long ? .35 : .16)); env(g, t, .003, .95, long ? .55 : .28); o.connect(g).connect(drums); o.start(t); o.stop(t + .7); };
+  const snare = t => { const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = nz; f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = .8; env(g, t, .002, .5, .16); s.connect(f).connect(g).connect(drums); s.start(t, Math.random()*.5, .3);
+    const o = ac.createOscillator(), og = ac.createGain(); o.frequency.value = 190; env(og, t, .002, .25, .08); o.connect(og).connect(drums); o.start(t); o.stop(t + .15); };
+  const hat = (t, open) => { const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = nz; f.type = 'highpass'; f.frequency.value = 7500; env(g, t, .001, open ? .16 : .12, open ? .14 : .03); s.connect(f).connect(g).connect(drums); s.start(t, Math.random()*.5, .25); };
+  const bell808 = (t) => { [587, 845].forEach(fq => { const o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain(); o.type = 'square'; o.frequency.value = fq; f.type = 'bandpass'; f.frequency.value = 800; env(g, t, .001, .07, .12); o.connect(f).connect(g).connect(drums); o.start(t); o.stop(t + .2); }); };
+  const bass = (t, note, d, type) => { const o = ac.createOscillator(), g = ac.createGain();
+    if (type === '808'){ o.type = 'sine'; o.frequency.setValueAtTime(hz(note + 12), t); o.frequency.exponentialRampToValueAtTime(hz(note), t + .06); env(g, t, .005, .55, d*1.4); o.connect(g).connect(mus); }
+    else if (type === 'saw'){ const f = ac.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.value = hz(note); f.type = 'lowpass'; f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(220, t + d); env(g, t, .005, .26, d); o.connect(f).connect(g).connect(mus); }
+    else { o.type = 'sine'; o.frequency.value = hz(note); env(g, t, .005, .45, d); o.connect(g).connect(mus); }
+    o.start(t); o.stop(t + d*1.6 + .05); };
+  const pad = (t, chord, d, vol) => chord.forEach(nn => { const o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain(); o.type = 'sawtooth'; o.frequency.value = hz(nn); o.detune.value = (Math.random() - .5)*14; f.type = 'lowpass'; f.frequency.value = 1100;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .25); g.gain.setValueAtTime(vol, t + d - .2); g.gain.linearRampToValueAtTime(0, t + d); o.connect(f).connect(g).connect(mus); o.start(t); o.stop(t + d + .05); });
+  const pluck = (t, note, vol) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = hz(note); env(g, t, .003, vol || .12, .18); o.connect(g).connect(mus); o.start(t); o.stop(t + .3); };
+  const bell = (t, note, vol, d) => { [[1, 1], [2.76, .35], [5.4, .12]].forEach(([r, v]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sine'; o.frequency.value = hz(note)*r; env(g, t, .002, (vol || .1)*v, d || .5); o.connect(g).connect(mus); o.start(t); o.stop(t + (d || .5) + .1); }); };
+  const lead = (t, note, d) => { const o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain(); o.type = 'square'; o.frequency.value = hz(note); f.type = 'lowpass'; f.frequency.value = 2600;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(.07, t + .01); g.gain.setValueAtTime(.07, t + Math.max(.02, d - .05)); g.gain.linearRampToValueAtTime(0.0001, t + d); o.connect(f).connect(g).connect(mus); o.start(t); o.stop(t + d + .05);
+    bell(t, note + 12, .05, Math.min(.6, d + .2)); };
+  const chords = m.chords && m.chords.length ? m.chords : [[57,60,64]];
+  const leadStart = 16; let li = 0, lnext = leadStart; const L = m.lead || null; // la melodía entra después del primer compás
+  for (let i = 0; i < N; i++){
+    const sw = (m.swing && i % 2) ? m.swing*step : 0, t = start + i*step + sw, bar = Math.floor(i/16), ch = chords[bar % chords.length], s16 = i % 16;
+    if (t > start + len - .3) break;
+    if (on(m.k, s16)){ kick(t, m.bassType === '808'); if (m.pump){ mus.gain.setValueAtTime(.35, t); mus.gain.linearRampToValueAtTime(1, t + step*3); } }
+    if (on(m.s, s16)) snare(t);
+    if (on(m.h, s16)) hat(t, false);
+    if (on(m.o, s16)) hat(t, true);
+    if (on(m.c, s16)) bell808(t);
+    if (on(m.bass, s16)) bass(t, ch[0] - 24 + (m.bassType === '808' ? 12 : 0), step*(m.bassType === '808' ? 3 : 1.6), m.bassType);
+    if (s16 === 0 && m.pad) pad(t, ch, step*16, m.pad);
+    if (m.pluck && i % 2 === 0 && !L) pluck(t, ch[(i/2) % ch.length] + 12, .09);
+    if (m.bell && s16 % 4 === 2 && !L) bell(t, ch[(s16/4|0) % ch.length] + 24, .045, .6);
+    if (m.crackle && Math.random() < .5){ const s = ac.createBufferSource(), g = ac.createGain(); s.buffer = nz; g.gain.value = .03; s.connect(g).connect(out); s.start(t + Math.random()*step, Math.random()*.9, .004); }
+    if (L && L.length && i >= leadStart && i === lnext){ const nt = L[li % L.length]; lead(t, nt[0], nt[1]*step*.95); lnext = i + nt[1]; li++; }
+  }
+  out.gain.setValueAtTime(.75, start + len - .8); out.gain.linearRampToValueAtTime(0, start + len);
+  return out;
+}
+let tryCtx = null;
+$('musicTry').onclick = async () => {
+  if (tryCtx){ tryCtx.close(); tryCtx = null; $('musicTry').textContent = 'Escuchar'; return; }
+  try { tryCtx = new (window.AudioContext||window.webkitAudioContext)(); await tryCtx.resume(); startBeat(tryCtx, null); restart(); $('musicTry').textContent = 'Detener';
+    const c = tryCtx; setTimeout(() => { if (tryCtx === c){ c.close(); tryCtx = null; $('musicTry').textContent = 'Escuchar'; } }, total()*1000 + 300); } catch { tryCtx = null; }
+};
 
 /* ---------- Exportar ---------- */
 let lastBlob = null, lastName = '';
@@ -961,7 +1427,8 @@ async function loadJob(){
   if (Array.isArray(job.points)) S.points = job.points.map(str);
   if (job.voice) S.voice = str(job.voice);
   S.hookIdx = 0;
-  if (job.tpl && TPL[job.tpl]){ S.tpl = job.tpl; document.querySelectorAll('#tpl button').forEach(x => x.setAttribute('aria-pressed', x.dataset.t === job.tpl)); }
+  if (job.tpl){ if (TPL[job.tpl]) selectTpl(job.tpl); else pendingTpl = String(job.tpl); }
+  if (job.music && (MUSIC[job.music] || job.music === 'auto')) $('musicSel').value = job.music;
   $('scriptTag').textContent = 'Plan del día';
   renderScript();
   const urls = (Array.isArray(job.images) ? job.images : []).filter(u => /^https:\/\/cdn\.shopify\.com\//.test(u)).slice(0,6);
@@ -970,9 +1437,11 @@ async function loadJob(){
   renderThumbs(); restart();
   $('jobInfo').textContent = got.length ? (got.length + ' foto(s) de Shopify cargadas. Revisa, mejora si quieres y exporta.') : 'No se pudieron cargar las fotos. Sube las fotos a mano.';
 }
+renderTplGroups(); renderMusicSel(); renderTplList(); selectTpl(S.tpl); loadTrends();
+window.ArbStudio = {drawFrame, total, selectTpl, templates: () => Object.keys(TPL), pause: v => { recording = !!v; }};
 loadJob();
 window.addEventListener('hashchange', loadJob);
-const fontsReady = Promise.all(['italic 700 40px "Bodoni Moda"','400 40px Anton','800 40px Manrope','600 40px Manrope'].map(f => document.fonts.load(f).catch(()=>{})));
+const fontsReady = Promise.all(['italic 700 40px "Bodoni Moda"','400 40px Anton','800 40px Manrope','600 40px Manrope', F(curT(),'disp',40), F(curT(),'body',40)].map(f => document.fonts.load(f).catch(()=>{})));
 fontsReady.then(restart);
 $('saveBtn').onclick = saveVideo;
 { const c = getCfg(); $('aiUrl').value = c.url || ''; $('aiToken').value = c.token || ''; paintDot(); }
